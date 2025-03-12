@@ -10,6 +10,7 @@ void run() {
     while( SDL_PollEvent( &event ) ){
       switch( event.type ){
         case SDL_QUIT:
+          
           running = false;
           break;
         case SDL_KEYDOWN:
