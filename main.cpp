@@ -1,7 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
-#include "8080.hpp"
-#include "screen.hpp"
+#include "./CPU/8080.hpp"
+#include "./CPU/screen.hpp"
 
 int main() {
   Screen* screen = new Screen();
