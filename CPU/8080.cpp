@@ -1,6 +1,14 @@
 #include "8080.hpp"
 
-void run() {
+_8080::_8080() {
+  screen = new Screen();
+}
+
+_8080::~_8080() {
+
+}
+
+void _8080::run() {
 
   SDL_Event event;
   bool running = true;
@@ -9,8 +17,7 @@ void run() {
 
     while( SDL_PollEvent( &event ) ){
       switch( event.type ){
-        case SDL_QUIT:
-          
+        case SDL_QUIT:  
           running = false;
           break;
         case SDL_KEYDOWN:
@@ -24,6 +31,8 @@ void run() {
       }
     }
     
+    screen->render_screen();
+
     SDL_Delay(1);
   }
 }

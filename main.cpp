@@ -4,7 +4,7 @@
 #include "./CPU/screen.hpp"
 
 int main() {
-  Screen* screen = new Screen();
-  run();
+  _8080* _8080_ = new _8080();
+  _8080_->run();
   return 0;
 }

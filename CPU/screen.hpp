@@ -8,14 +8,12 @@
 #define PIXELS_PER_ROW 256
 #define PIXELS_PER_COLUMN 224
 #define SCREEN_SCALER 4
-#define GREEN 0x19FF19FF
-#define WHITE 0xFFFFFFFF
-#define BLACK 0x000000FF
-#define RED 0xFF0000FF
+#define GREEN 0x19FF19
+#define WHITE 0xFFFFFF
+#define BLACK 0x000000
+#define RED 0xFF0000
 
 using u32 = std::uint32_t;
-
-class Screen;
 
 class Screen {
   public:
@@ -26,6 +24,7 @@ class Screen {
     int window_h = PIXELS_PER_COLUMN * SCREEN_SCALER;
     Screen();
     ~Screen();
+    void render_screen();
 
   private:
     SDL_Window* window = nullptr;
