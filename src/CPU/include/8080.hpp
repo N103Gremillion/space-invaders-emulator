@@ -12,7 +12,6 @@ using namespace std;
 class _8080 {
     private:
         Screen* screen;
-        array<> flags;
     public:
         void run();
         _8080();

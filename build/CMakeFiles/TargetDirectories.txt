@@ -1,0 +1,11 @@
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/CMakeFiles/edit_cache.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/CMakeFiles/rebuild_cache.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/src/CMakeFiles/8080Emulator.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/src/CMakeFiles/edit_cache.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/src/CMakeFiles/rebuild_cache.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/src/CPU/CMakeFiles/keys.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/src/CPU/CMakeFiles/8080.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/src/CPU/CMakeFiles/screen.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/src/CPU/CMakeFiles/logger.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/src/CPU/CMakeFiles/edit_cache.dir
+/home/nathan/Desktop/emulators/Space_Invaders_Emulator/build/src/CPU/CMakeFiles/rebuild_cache.dir

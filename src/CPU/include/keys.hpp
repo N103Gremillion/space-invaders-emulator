@@ -2,7 +2,7 @@
 #define KEYS_HPP
 
 #include <iostream>
-#include "../debug/logger.hpp"
+#include "logger.hpp"
 
 using namespace std;
 
