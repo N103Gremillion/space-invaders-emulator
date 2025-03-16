@@ -1,8 +1,32 @@
-cmake_minimum_required(VERSION 3.28.3)
-project(8080Emulator LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.8)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON) 
-set(CMAKE_CXX_EXTENSIONS OFF) 
+set(This Space_Invaders_Emulator)
 
-add_subdirectory(src)
+project(${This} CXX)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+enable_testing()
+
+add_subdirectory(googletest)
+
+set (Headers
+  ./src/CPU/8080.hpp
+  ./src/CPU/keys.hpp
+  ./src/CPU/logger.hpp
+  ./src/CPU/screen.hpp
+)
+
+set(Sources
+  ./src/CPU/8080.cpp
+  ./src/CPU/keys.cpp
+  ./src/CPU/logger.cpp
+  ./src/CPU/screen.cpp
+)
+
+add_library(${This} STATIC ${Headers} ${Sources})
+
+# keep test separate from code
+add_subdirectory(tests)
+
