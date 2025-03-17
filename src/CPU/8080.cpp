@@ -2,6 +2,8 @@
 
 _8080::_8080() {
   screen = new Screen();
+  ram = (u8*) malloc(sizeof(u8) * TOTAL_BYTES_OF_RAM);
+
 }
 
 _8080::~_8080() {

@@ -273,6 +273,54 @@ src/CPU/8080.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/8080.cpp.s
 .PHONY : src/CPU/8080.cpp.s
 
+src/CPU/Registers.o: src/CPU/Registers.cpp.o
+.PHONY : src/CPU/Registers.o
+
+# target to build an object file
+src/CPU/Registers.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Registers.cpp.o
+.PHONY : src/CPU/Registers.cpp.o
+
+src/CPU/Registers.i: src/CPU/Registers.cpp.i
+.PHONY : src/CPU/Registers.i
+
+# target to preprocess a source file
+src/CPU/Registers.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Registers.cpp.i
+.PHONY : src/CPU/Registers.cpp.i
+
+src/CPU/Registers.s: src/CPU/Registers.cpp.s
+.PHONY : src/CPU/Registers.s
+
+# target to generate assembly for a file
+src/CPU/Registers.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Registers.cpp.s
+.PHONY : src/CPU/Registers.cpp.s
+
+src/CPU/Screen.o: src/CPU/Screen.cpp.o
+.PHONY : src/CPU/Screen.o
+
+# target to build an object file
+src/CPU/Screen.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Screen.cpp.o
+.PHONY : src/CPU/Screen.cpp.o
+
+src/CPU/Screen.i: src/CPU/Screen.cpp.i
+.PHONY : src/CPU/Screen.i
+
+# target to preprocess a source file
+src/CPU/Screen.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Screen.cpp.i
+.PHONY : src/CPU/Screen.cpp.i
+
+src/CPU/Screen.s: src/CPU/Screen.cpp.s
+.PHONY : src/CPU/Screen.s
+
+# target to generate assembly for a file
+src/CPU/Screen.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Screen.cpp.s
+.PHONY : src/CPU/Screen.cpp.s
+
 src/CPU/keys.o: src/CPU/keys.cpp.o
 .PHONY : src/CPU/keys.o
 
@@ -321,30 +369,6 @@ src/CPU/logger.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/logger.cpp.s
 .PHONY : src/CPU/logger.cpp.s
 
-src/CPU/screen.o: src/CPU/screen.cpp.o
-.PHONY : src/CPU/screen.o
-
-# target to build an object file
-src/CPU/screen.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/screen.cpp.o
-.PHONY : src/CPU/screen.cpp.o
-
-src/CPU/screen.i: src/CPU/screen.cpp.i
-.PHONY : src/CPU/screen.i
-
-# target to preprocess a source file
-src/CPU/screen.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/screen.cpp.i
-.PHONY : src/CPU/screen.cpp.i
-
-src/CPU/screen.s: src/CPU/screen.cpp.s
-.PHONY : src/CPU/screen.s
-
-# target to generate assembly for a file
-src/CPU/screen.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/screen.cpp.s
-.PHONY : src/CPU/screen.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -367,15 +391,18 @@ help:
 	@echo "... src/CPU/8080.o"
 	@echo "... src/CPU/8080.i"
 	@echo "... src/CPU/8080.s"
+	@echo "... src/CPU/Registers.o"
+	@echo "... src/CPU/Registers.i"
+	@echo "... src/CPU/Registers.s"
+	@echo "... src/CPU/Screen.o"
+	@echo "... src/CPU/Screen.i"
+	@echo "... src/CPU/Screen.s"
 	@echo "... src/CPU/keys.o"
 	@echo "... src/CPU/keys.i"
 	@echo "... src/CPU/keys.s"
 	@echo "... src/CPU/logger.o"
 	@echo "... src/CPU/logger.i"
 	@echo "... src/CPU/logger.s"
-	@echo "... src/CPU/screen.o"
-	@echo "... src/CPU/screen.i"
-	@echo "... src/CPU/screen.s"
 .PHONY : help
 
 

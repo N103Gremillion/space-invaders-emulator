@@ -15,14 +15,16 @@ set (Headers
   ./src/CPU/8080.hpp
   ./src/CPU/keys.hpp
   ./src/CPU/logger.hpp
-  ./src/CPU/screen.hpp
+  ./src/CPU/Screen.hpp
+  ./src/CPU/Registers.hpp
 )
 
 set(Sources
   ./src/CPU/8080.cpp
   ./src/CPU/keys.cpp
   ./src/CPU/logger.cpp
-  ./src/CPU/screen.cpp
+  ./src/CPU/Screen.cpp
+  ./src/CPU/Registers.cpp
 )
 
 add_library(${This} STATIC ${Headers} ${Sources})

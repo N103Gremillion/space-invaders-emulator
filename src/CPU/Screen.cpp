@@ -1,4 +1,4 @@
-#include "screen.hpp"
+#include "Screen.hpp"
 
 Screen::Screen() {
   SDL_Init(SDL_INIT_VIDEO);
