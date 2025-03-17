@@ -2,7 +2,7 @@
 
 _8080::_8080() {
   screen = new Screen();
-  ram = (u8*) malloc(sizeof(u8) * TOTAL_BYTES_OF_RAM);
+  memory = (u8*) malloc(sizeof(u8) * TOTAL_BYTES_OF_MEM);
 
 }
 
