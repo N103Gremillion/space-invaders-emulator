@@ -9,14 +9,6 @@ Screen::Screen() {
   for (int i = 0; i < TOTAL_PIXELS; i++) {
     pixels[i]  = BLACK;
   }
-  
-  for (int i = 0; i < 100; i++) {
-    pixels[i] = RED;
-  }
-
-  for (int i = TOTAL_PIXELS - 100; i < TOTAL_PIXELS; i++) {
-    pixels[TOTAL_PIXELS - 1] = GREEN;
-  }
 
   window = SDL_CreateWindow("Space Invaders Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,  window_w, window_h, SDL_WINDOW_RESIZABLE);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);

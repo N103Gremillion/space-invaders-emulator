@@ -1,4 +1,4 @@
 cd build
 cmake ..
-make 8080Emulator
-./src/8080Emulator
+make VERBOSE=1
+./Space_Invaders_Emulator

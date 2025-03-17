@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/8080Emulator.dir/main.cpp.o -o 8080Emulator  -Wl,-rpath,/home/linuxbrew/.linuxbrew/Cellar/sdl2/2.32.2/lib CPU/libkeys.a CPU/lib8080.a CPU/libscreen.a CPU/liblogger.a CPU/libkeys.a CPU/lib8080.a CPU/libscreen.a CPU/liblogger.a /home/linuxbrew/.linuxbrew/Cellar/sdl2/2.32.2/lib/libSDL2.so 

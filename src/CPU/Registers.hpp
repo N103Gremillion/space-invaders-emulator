@@ -20,7 +20,7 @@ class Registers{
       // 8-bit f(Flag register)
       union {
         struct {
-            u8 c:1;  // Carry
+            u8 ca:1;  // Carry
             u8 :1;
             u8 p:1;  // Parity bit
             u8 :1;

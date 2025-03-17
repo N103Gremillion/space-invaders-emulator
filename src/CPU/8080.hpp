@@ -4,6 +4,8 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <array>
+#include <fstream>
+#include <vector>
 #include "keys.hpp"
 #include "Screen.hpp"
 #include "Registers.hpp"
@@ -19,9 +21,10 @@ using namespace std;
 class _8080 {
     private:
         Screen* screen;
-        u8* memory;
     public:
         Registers* regs;
+        u8* memory;
+        void load_rom(const string& file_path, u16 start_address);
         void run();
         _8080();
         ~_8080();

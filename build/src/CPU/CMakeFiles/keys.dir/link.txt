@@ -1,2 +1,0 @@
-/usr/bin/ar qc libkeys.a CMakeFiles/keys.dir/keys.cpp.o
-/usr/bin/ranlib libkeys.a

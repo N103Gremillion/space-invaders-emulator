@@ -9,6 +9,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 enable_testing()
 
+find_package(SDL2 REQUIRED)
+include_directories(${This} ${SDL2_INCLUDE_DIRS})
+
 add_subdirectory(googletest)
 
 set (Headers
@@ -25,9 +28,13 @@ set(Sources
   ./src/CPU/logger.cpp
   ./src/CPU/Screen.cpp
   ./src/CPU/Registers.cpp
+  ./src/main.cpp
 )
 
-add_library(${This} STATIC ${Headers} ${Sources})
+# Add an executable (main entry point)
+add_executable(${This} ${Sources})
+
+target_link_libraries(${This} ${SDL2_LIBRARIES})
 
 # keep test separate from code
 add_subdirectory(tests)

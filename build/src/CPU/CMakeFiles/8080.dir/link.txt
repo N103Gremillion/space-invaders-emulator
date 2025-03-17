@@ -1,2 +1,0 @@
-/usr/bin/ar qc lib8080.a CMakeFiles/8080.dir/8080.cpp.o
-/usr/bin/ranlib lib8080.a
