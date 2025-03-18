@@ -10,7 +10,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 enable_testing()
 
 find_package(SDL2 REQUIRED)
-include_directories(${This} ${SDL2_INCLUDE_DIRS})
+find_package(SDL2_ttf REQUIRED)
+
+include_directories(${This} ${SDL2_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})
 
 add_subdirectory(googletest)
 
@@ -34,8 +36,8 @@ set(Sources
 # Add an executable (main entry point)
 add_executable(${This} ${Sources})
 
-target_link_libraries(${This} ${SDL2_LIBRARIES})
-
+target_link_libraries(${This} ${SDL2_LIBRARIES} SDL2 SDL2_ttf)
+target_link_libraries(${This} )
 # keep test separate from code
 add_subdirectory(tests)
 

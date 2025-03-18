@@ -1,7 +1,6 @@
 #include "Screen.hpp"
 
 Screen::Screen() {
-  SDL_Init(SDL_INIT_VIDEO);
 
   pixels = new u32[TOTAL_PIXELS];
 
@@ -10,7 +9,13 @@ Screen::Screen() {
     pixels[i]  = BLACK;
   }
 
-  window = SDL_CreateWindow("Space Invaders Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,  window_w, window_h, SDL_WINDOW_RESIZABLE);
+  window = SDL_CreateWindow("Space Invaders Emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,  window_w, window_h, 0);
+
+  // shift the window to appropriate position
+  int window_x;
+  int window_y;
+  SDL_GetWindowPosition(window, &window_x, &window_y);
+  SDL_SetWindowPosition(window, window_x * 1.5, window_y);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PIXELS_PER_ROW, PIXELS_PER_COLUMN);
 }

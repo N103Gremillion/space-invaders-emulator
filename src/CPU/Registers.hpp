@@ -16,7 +16,7 @@ class Registers{
   // flags and a register which describes state of flags
   union {  
     struct {
-      u8 a;
+      u8 a = 0x00;
       // 8-bit f(Flag register)
       union {
         struct {
@@ -40,7 +40,7 @@ class Registers{
       u8 c;
       u8 b;
     };
-    u16 bc;
+    u16 bc = 0x0000;
   };
 
   // d = 2 and e = 3
@@ -49,7 +49,7 @@ class Registers{
       u8 e;
       u8 d;
     };
-    u16 de;
+    u16 de = 0x0000;
   };
 
   // h = 4 and l = 5
@@ -58,11 +58,11 @@ class Registers{
       u8 l;
       u8 h;
     };
-    u16 hl;
+    u16 hl = 0x0000;
   };
 
   u16 pc; // program counter
-  u16 sp;
+  u16 sp = 0x2400;
 };
 
 #endif
