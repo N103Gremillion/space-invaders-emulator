@@ -152,12 +152,12 @@ tests/clean: tests/CMakeFiles/8080_tests.dir/clean
 CMakeFiles/Space_Invaders_Emulator.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=3,4,5,6,7,8,9 "Built target Space_Invaders_Emulator"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=3,4,5,6,7,8 "Built target Space_Invaders_Emulator"
 .PHONY : CMakeFiles/Space_Invaders_Emulator.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/Space_Invaders_Emulator.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles 7
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles 6
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Space_Invaders_Emulator.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles 0
 .PHONY : CMakeFiles/Space_Invaders_Emulator.dir/rule
@@ -178,7 +178,7 @@ CMakeFiles/Space_Invaders_Emulator.dir/clean:
 googletest/googlemock/CMakeFiles/gmock.dir/all: googletest/googletest/CMakeFiles/gtest.dir/all
 	$(MAKE) $(MAKESILENT) -f googletest/googlemock/CMakeFiles/gmock.dir/build.make googletest/googlemock/CMakeFiles/gmock.dir/depend
 	$(MAKE) $(MAKESILENT) -f googletest/googlemock/CMakeFiles/gmock.dir/build.make googletest/googlemock/CMakeFiles/gmock.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=10,11 "Built target gmock"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=9,10 "Built target gmock"
 .PHONY : googletest/googlemock/CMakeFiles/gmock.dir/all
 
 # Build rule for subdir invocation for target.
@@ -205,7 +205,7 @@ googletest/googlemock/CMakeFiles/gmock_main.dir/all: googletest/googlemock/CMake
 googletest/googlemock/CMakeFiles/gmock_main.dir/all: googletest/googletest/CMakeFiles/gtest.dir/all
 	$(MAKE) $(MAKESILENT) -f googletest/googlemock/CMakeFiles/gmock_main.dir/build.make googletest/googlemock/CMakeFiles/gmock_main.dir/depend
 	$(MAKE) $(MAKESILENT) -f googletest/googlemock/CMakeFiles/gmock_main.dir/build.make googletest/googlemock/CMakeFiles/gmock_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=12,13 "Built target gmock_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=11,12 "Built target gmock_main"
 .PHONY : googletest/googlemock/CMakeFiles/gmock_main.dir/all
 
 # Build rule for subdir invocation for target.
@@ -231,7 +231,7 @@ googletest/googlemock/CMakeFiles/gmock_main.dir/clean:
 googletest/googletest/CMakeFiles/gtest.dir/all:
 	$(MAKE) $(MAKESILENT) -f googletest/googletest/CMakeFiles/gtest.dir/build.make googletest/googletest/CMakeFiles/gtest.dir/depend
 	$(MAKE) $(MAKESILENT) -f googletest/googletest/CMakeFiles/gtest.dir/build.make googletest/googletest/CMakeFiles/gtest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=14,15 "Built target gtest"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=13,14 "Built target gtest"
 .PHONY : googletest/googletest/CMakeFiles/gtest.dir/all
 
 # Build rule for subdir invocation for target.
@@ -257,7 +257,7 @@ googletest/googletest/CMakeFiles/gtest.dir/clean:
 googletest/googletest/CMakeFiles/gtest_main.dir/all: googletest/googletest/CMakeFiles/gtest.dir/all
 	$(MAKE) $(MAKESILENT) -f googletest/googletest/CMakeFiles/gtest_main.dir/build.make googletest/googletest/CMakeFiles/gtest_main.dir/depend
 	$(MAKE) $(MAKESILENT) -f googletest/googletest/CMakeFiles/gtest_main.dir/build.make googletest/googletest/CMakeFiles/gtest_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=16,17 "Built target gtest_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/CMakeFiles --progress-num=15,16 "Built target gtest_main"
 .PHONY : googletest/googletest/CMakeFiles/gtest_main.dir/all
 
 # Build rule for subdir invocation for target.

@@ -19,7 +19,6 @@ add_subdirectory(googletest)
 set (Headers
   ./src/CPU/8080.hpp
   ./src/CPU/keys.hpp
-  ./src/CPU/logger.hpp
   ./src/CPU/Screen.hpp
   ./src/CPU/Registers.hpp
 )
@@ -27,7 +26,6 @@ set (Headers
 set(Sources
   ./src/CPU/8080.cpp
   ./src/CPU/keys.cpp
-  ./src/CPU/logger.cpp
   ./src/CPU/Screen.cpp
   ./src/CPU/Registers.cpp
   ./src/main.cpp

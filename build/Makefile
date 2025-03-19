@@ -345,30 +345,6 @@ src/CPU/keys.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/keys.cpp.s
 .PHONY : src/CPU/keys.cpp.s
 
-src/CPU/logger.o: src/CPU/logger.cpp.o
-.PHONY : src/CPU/logger.o
-
-# target to build an object file
-src/CPU/logger.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/logger.cpp.o
-.PHONY : src/CPU/logger.cpp.o
-
-src/CPU/logger.i: src/CPU/logger.cpp.i
-.PHONY : src/CPU/logger.i
-
-# target to preprocess a source file
-src/CPU/logger.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/logger.cpp.i
-.PHONY : src/CPU/logger.cpp.i
-
-src/CPU/logger.s: src/CPU/logger.cpp.s
-.PHONY : src/CPU/logger.s
-
-# target to generate assembly for a file
-src/CPU/logger.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Space_Invaders_Emulator.dir/build.make CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/logger.cpp.s
-.PHONY : src/CPU/logger.cpp.s
-
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -424,9 +400,6 @@ help:
 	@echo "... src/CPU/keys.o"
 	@echo "... src/CPU/keys.i"
 	@echo "... src/CPU/keys.s"
-	@echo "... src/CPU/logger.o"
-	@echo "... src/CPU/logger.i"
-	@echo "... src/CPU/logger.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
