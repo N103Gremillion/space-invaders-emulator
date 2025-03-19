@@ -1,0 +1,62 @@
+[
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build",
+  "command": "/usr/bin/c++  -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -isystem /usr/include/SDL2 -g -std=gnu++11 -fPIE -o CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/8080.cpp.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/CPU/8080.cpp",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/CPU/8080.cpp",
+  "output": "CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/8080.cpp.o"
+},
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build",
+  "command": "/usr/bin/c++  -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -isystem /usr/include/SDL2 -g -std=gnu++11 -fPIE -o CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/keys.cpp.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/CPU/keys.cpp",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/CPU/keys.cpp",
+  "output": "CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/keys.cpp.o"
+},
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build",
+  "command": "/usr/bin/c++  -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -isystem /usr/include/SDL2 -g -std=gnu++11 -fPIE -o CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Screen.cpp.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/CPU/Screen.cpp",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/CPU/Screen.cpp",
+  "output": "CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Screen.cpp.o"
+},
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build",
+  "command": "/usr/bin/c++  -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -isystem /usr/include/SDL2 -g -std=gnu++11 -fPIE -o CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Registers.cpp.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/CPU/Registers.cpp",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/CPU/Registers.cpp",
+  "output": "CMakeFiles/Space_Invaders_Emulator.dir/src/CPU/Registers.cpp.o"
+},
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build",
+  "command": "/usr/bin/c++  -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -isystem /usr/include/SDL2 -g -std=gnu++11 -fPIE -o CMakeFiles/Space_Invaders_Emulator.dir/src/main.cpp.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/main.cpp",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/src/main.cpp",
+  "output": "CMakeFiles/Space_Invaders_Emulator.dir/src/main.cpp.o"
+},
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/googletest/googlemock",
+  "command": "/usr/bin/c++  -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -I/usr/include/SDL2 -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googlemock/include -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googlemock -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest/include -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest -g -std=c++17 -fPIC -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googlemock/src/gmock-all.cc",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googlemock/src/gmock-all.cc",
+  "output": "googletest/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o"
+},
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/googletest/googlemock",
+  "command": "/usr/bin/c++  -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -isystem /usr/include/SDL2 -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googlemock/include -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googlemock -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest/include -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest -g -std=c++17 -fPIC -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googlemock/src/gmock_main.cc",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googlemock/src/gmock_main.cc",
+  "output": "googletest/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o"
+},
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/googletest/googletest",
+  "command": "/usr/bin/c++  -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -I/usr/include/SDL2 -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest/include -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest -g -std=c++17 -fPIC -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest/src/gtest-all.cc",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest/src/gtest-all.cc",
+  "output": "googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o"
+},
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/googletest/googletest",
+  "command": "/usr/bin/c++  -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -I/usr/include/SDL2 -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest/include -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest -g -std=c++17 -fPIC -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest/src/gtest_main.cc",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest/src/gtest_main.cc",
+  "output": "googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o"
+},
+{
+  "directory": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/build/tests",
+  "command": "/usr/bin/c++  -I/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/Space_Invaders_Emulator -I/usr/include/SDL2 -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest/include -isystem /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/googletest/googletest -g -std=gnu++17 -fPIE -o CMakeFiles/8080_tests.dir/test_8080.cpp.o -c /home/nathan/Desktop/emulators/Space_Ivaders_Emulator/tests/test_8080.cpp",
+  "file": "/home/nathan/Desktop/emulators/Space_Ivaders_Emulator/tests/test_8080.cpp",
+  "output": "tests/CMakeFiles/8080_tests.dir/test_8080.cpp.o"
+}
+]

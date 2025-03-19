@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/8080_tests.dir/test_8080.cpp.o -o 8080_tests  ../lib/libgtest_main.a ../lib/libgtest.a 
