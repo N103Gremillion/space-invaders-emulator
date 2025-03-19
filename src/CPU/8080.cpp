@@ -16,14 +16,6 @@ _8080::_8080() {
   TTF_Init();
   SDL_Init(SDL_INIT_VIDEO);
 
-  // font library
-  string font_file = "../font/Cascadia.ttf";
-  font = TTF_OpenFont(font_file.c_str(), 16);
-  if (!font) {
-    printf("Current directory: %s \n", getcwd(NULL, 0));
-    printf("error opening font");
-  }
-
   memory = (u8*) malloc(sizeof(u8) * TOTAL_BYTES_OF_MEM);
   regs = new Registers();
   screen = new Screen();
@@ -34,7 +26,7 @@ _8080::_8080() {
   int window_y;
   SDL_GetWindowPosition(window, &window_x, &window_y);
   SDL_SetWindowPosition(window, window_x * 0.3, window_y * 0.3);
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED );
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
 }
 
@@ -92,7 +84,7 @@ void _8080::draw_instructions() {
 
   for (int i = 0; i < instructions_to_draw; i++){
     string instruction_text = get_hex_string(temp + i) + ": 0x" + get_hex_string(memory[temp +i]);
-    SDL_Surface* text = TTF_RenderText_Solid(font, instruction_text.c_str(), color);
+    SDL_Surface* text = TTF_RenderText_Solid(regs->font, instruction_text.c_str(), color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface( renderer, text );
     SDL_Rect text_rect = {x, y, text->w, text->h};
     SDL_RenderCopy(renderer, texture, NULL, &text_rect);
@@ -108,12 +100,13 @@ void _8080::render() {
   screen->render_screen();
   fill_background();
   draw_instructions();
+  regs->render_regs();
 }
 
 void _8080::run() {
 
   SDL_Event event;
-  int open_windows = 2;
+  int open_windows = 3;
   bool running = true;
 
   while (running) {
@@ -129,11 +122,16 @@ void _8080::run() {
           }
           SDL_Window* closed_window = SDL_GetWindowFromID(event.window.windowID);
           if (closed_window == window) {
+            SDL_DestroyRenderer(renderer);
             SDL_DestroyWindow(window);
           }
           else if (closed_window == screen->window) {
             SDL_DestroyRenderer(screen->renderer);
             SDL_DestroyWindow(screen->window);
+          }
+          else if (closed_window == regs->window) {
+            SDL_DestroyRenderer(screen->renderer);
+            SDL_DestroyWindow(regs->window);
           }
           open_windows--;
         }
@@ -147,8 +145,6 @@ void _8080::run() {
           break;
       }
     }
-    
-    regs->pc += 1;
     render();
 
     SDL_Delay(10);

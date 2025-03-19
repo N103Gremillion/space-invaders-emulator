@@ -1,7 +1,16 @@
 #ifndef REGISTERS_HPP
 #define REGISTERS_HPP
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <cstdint>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+
+#define WHITE 0xFFFFFF
+#define BLACK 0x000000
 
 using u16 = uint16_t;
 using u8 = uint8_t;
@@ -9,14 +18,21 @@ using u8 = uint8_t;
 class Registers{
 
   public:
-    Registers();
+    Registers(); 
+    TTF_Font* font = nullptr;
+    int window_w = 100;
+    int window_h = 330;
+    SDL_Window* window = nullptr;
+    SDL_Renderer* renderer = nullptr;
+    void render_regs();
+    std::string get_hex_string(int reg_num);
 
   // note : 8080 is a little edian processor
 
   // flags and a register which describes state of flags
   union {  
     struct {
-      u8 a = 0x00;
+      u8 a;
       // 8-bit f(Flag register)
       union {
         struct {
@@ -32,7 +48,7 @@ class Registers{
         u8 f;
       };
     };
-    u16 PSW;
+    u16 PSW = 0x0000;
   };
   
   union {
@@ -61,7 +77,7 @@ class Registers{
     u16 hl = 0x0000;
   };
 
-  u16 pc; // program counter
+  u16 pc = 0x0000; // program counter
   u16 sp = 0x2400;
 };
 

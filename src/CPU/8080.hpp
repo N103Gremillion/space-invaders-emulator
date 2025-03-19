@@ -2,13 +2,10 @@
 #define _8080_HPP
 
 #include <iostream>
-#include <sstream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <array>
-#include <fstream>
 #include <vector>
-#include <iomanip>
 #include "keys.hpp"
 #include "Screen.hpp"
 #include "Registers.hpp"
