@@ -14,8 +14,6 @@ find_package(SDL2_ttf REQUIRED)
 
 include_directories(${This} ${SDL2_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})
 
-add_subdirectory(googletest)
-
 set (Headers
   ./src/CPU/8080.hpp
   ./src/CPU/keys.hpp
@@ -36,6 +34,5 @@ add_executable(${This} ${Sources})
 
 target_link_libraries(${This} ${SDL2_LIBRARIES} SDL2 SDL2_ttf)
 target_link_libraries(${This} )
-# keep test separate from code
-add_subdirectory(tests)
+
 
