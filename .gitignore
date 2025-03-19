@@ -1,3 +1,3 @@
-./build
-./googletest
-./invaders
+googletest
+invaders
+build
