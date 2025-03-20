@@ -111,6 +111,7 @@ void _8080::run() {
 
   while (running) {
 
+    // event handling
     while( SDL_PollEvent( &event ) ){
       switch( event.type ){
         case SDL_QUIT:  
@@ -145,8 +146,91 @@ void _8080::run() {
           break;
       }
     }
+    // instruction handling
+    // graphics handling
     render();
 
-    SDL_Delay(10);
+    u8 opcode = fetch_opcode();
+    execute_instruction(opcode);
+
+    SDL_Delay(1000);
   }
 }
+
+// use pc to get the opcode of next instruction
+u8 _8080::fetch_opcode() {
+  u8 opcode = memory[regs->pc];
+  regs->pc += 1;
+  return opcode;
+}
+
+// check type of instruciotn using opcode and perform instruciton
+void _8080::execute_instruction(u8 opcode) {
+  switch (opcode) {
+    // NOP / nothing instruciton
+    case 0x00:
+      printf("NOP do nothing \n");
+      break;
+    // LXI B, d16 / load preciding 16 bits into register BC
+    case 0x01:
+      printf("Load next 16 bits into BC \n");
+      break;
+    // STAX (store accumulator inderectly) B / store value of A reg into memory location pointed to by BC reg_pair
+    case 0x02:
+      printf("store value in A reg into mem location pointed to by BC reg_pair \n");
+      break;
+    // INX B (increment reg pair) / increment BC reg pair by 1
+    case 0x03:
+      printf("Increment BC reg_pair by 1");
+      break;
+    // INR B (incrment reg) / increment B reg by 1
+    case 0x04:
+      printf("increment B reg by 1");
+      break;
+    // DCR B (decrement reg) / decrement B reg by 1
+    case 0x05:
+      printf("decrement B reg by 1");
+      break;
+    // MVI B, d8 (move immediate) / move d8 value into B reg
+    case 0x06:
+      printf("move the proceding 8 bits into B reg");
+      break;
+    // RLC (Rotate left through carry) / shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value
+    case 0x07:
+      printf("shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value");
+      break;
+    // another NOP
+    case 0x08:
+      printf("another NOP");
+      break;
+    // DAD B (double add) / add value in BC reg pair to HL reg pair (modifies the carry flag if there is overflow)
+    case 0x09:
+      printf("add value in BC reg pair to HL reg pair (modifies the carry flag if there is overflow)");
+      break;
+    // LDAX B (load accumulator from mem) / load memory address pointed to by BC (memory[BC]) into A reg 
+    case 0x0A:
+      printf("load memory address pointed to by BC (memory[BC]) into A reg ");
+      break;
+    // DCX B (decremnt hex value(16 bit)) / decremtn BC reg pair by 1
+    case 0x0B:
+      printf("decrement BC reg pair by 1");
+      break;
+    // INC C / incremtent c by 1 (note affects many flags)
+    case 0x0C:
+      printf("incremtent c by 1 (note affects many flags)");
+      break;
+    // DCR C / decrement c by 1
+    case 0x0D:
+      printf("decrement c by 1");
+      break;
+    // MVI, C, d8 / move next byte into C reg
+    case 0x0E:
+      printf("move next byte into C reg");
+      break;
+    // RRC / rotate right through carry 
+    case 0x0F:
+      printf("rotate right through carry");
+      break;
+  }
+}
+

@@ -34,6 +34,9 @@ class _8080 {
         void render();
         void fill_background();
         void draw_instructions();
+        u8 fetch_opcode();
+        void execute_instruction(u8 opcode);
+
     public:
         Registers* regs;
         u8* memory;
