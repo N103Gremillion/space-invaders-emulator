@@ -167,6 +167,7 @@ u8 _8080::fetch_opcode() {
 // check type of instruciotn using opcode and perform instruciton
 void _8080::execute_instruction(u8 opcode) {
   switch (opcode) {
+    // 00 - 0F
     // NOP / nothing instruciton
     case 0x00:
       printf("NOP do nothing \n");
@@ -181,56 +182,129 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     // INX B (increment reg pair) / increment BC reg pair by 1
     case 0x03:
-      printf("Increment BC reg_pair by 1");
+      printf("Increment BC reg_pair by 1 \n");
       break;
     // INR B (incrment reg) / increment B reg by 1
     case 0x04:
-      printf("increment B reg by 1");
+      printf("increment B reg by 1 \n");
       break;
     // DCR B (decrement reg) / decrement B reg by 1
     case 0x05:
-      printf("decrement B reg by 1");
+      printf("decrement B reg by 1 \n");
       break;
     // MVI B, d8 (move immediate) / move d8 value into B reg
     case 0x06:
-      printf("move the proceding 8 bits into B reg");
+      printf("move the proceding 8 bits into B reg \n");
       break;
     // RLC (Rotate left through carry) / shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value
     case 0x07:
-      printf("shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value");
+      printf("shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value \n");
       break;
     // another NOP
     case 0x08:
-      printf("another NOP");
+      printf("another NOP \n");
       break;
     // DAD B (double add) / add value in BC reg pair to HL reg pair (modifies the carry flag if there is overflow)
     case 0x09:
-      printf("add value in BC reg pair to HL reg pair (modifies the carry flag if there is overflow)");
+      printf("add value in BC reg pair to HL reg pair (modifies the carry flag if there is overflow) \n");
       break;
     // LDAX B (load accumulator from mem) / load memory address pointed to by BC (memory[BC]) into A reg 
     case 0x0A:
-      printf("load memory address pointed to by BC (memory[BC]) into A reg ");
+      printf("load memory address pointed to by BC (memory[BC]) into A reg \n");
       break;
     // DCX B (decremnt hex value(16 bit)) / decremtn BC reg pair by 1
     case 0x0B:
-      printf("decrement BC reg pair by 1");
+      printf("decrement BC reg pair by 1 \n");
       break;
     // INC C / incremtent c by 1 (note affects many flags)
     case 0x0C:
-      printf("incremtent c by 1 (note affects many flags)");
+      printf("incremtent c by 1 (note affects many flags) \n");
       break;
     // DCR C / decrement c by 1
     case 0x0D:
-      printf("decrement c by 1");
+      printf("decrement c by 1 \n");
       break;
     // MVI, C, d8 / move next byte into C reg
     case 0x0E:
-      printf("move next byte into C reg");
+      printf("move next byte into C reg \n");
       break;
     // RRC / rotate right through carry 
     case 0x0F:
-      printf("rotate right through carry");
+      printf("rotate right through carry \n");
       break;
+
+    // 10 - 1F
+    // NOP command
+    case 0x10:
+      printf("nothing \n");
+      break;
+
+    // 20 - 2F
+    // NOP command
+    case 0x20:
+      printf("nothing \n");
+      break;
+
+    // 30 - 3F
+    case 0x30:
+      printf("nothing \n");
+      break;
+
+    // 40 - 4F
+    // MOV B,B / moves B reg into B
+    case 0x40:
+      printf("moves B reg into B \n");
+      break;
+
+    // 50 - 5F
+    // MOV D,B / moves B into D
+    case 0x50:
+      printf("moves B reg into D reg \n");
+      break;
+
+    // 60 - 6F
+    // MOV H,B / moves B into H
+    case 0x60:
+      printf("moves B reg into H reg \n");
+      break;
+
+    // 70 - 7F
+    // MOV M,B / moves contents in B into memory location in HL
+    case 0x70:
+      printf("moves contents in B into memory location in HL \n");
+      break;
+
+    // 80 - 8F
+    // ADD B / adds contents of B into A
+    case 0x80:
+      printf("A = A + B \n");
+      break;
+
+    // 90 - 9F
+    // SUB B / subtracts the contents of B from A
+    case 0x90:
+      printf("A = A - B \n");
+      break;
+     
+    // A0 - AF
+    // ANA B / bitwize and & between A and B stored in A
+    case 0xA0:
+      printf("A = A & B");
+      break;
+
+    // B0 - BF
+    // ORA B / bitwize or | between A and B and stored in A
+    case 0xB0:
+      printf("A = A | B");
+      break;
+
+    // C0 - CF
+    
+    // D0 - DF
+     
+    // E0 - EF
+     
+    // F0 - FF
   }
 }
 
