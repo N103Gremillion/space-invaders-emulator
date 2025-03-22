@@ -83,7 +83,17 @@ void _8080::draw_instructions() {
   int instructions_to_draw = 35;
 
   for (int i = 0; i < instructions_to_draw; i++){
-    string instruction_text = get_hex_string(temp + i) + ": 0x" + get_hex_string(memory[temp +i]);
+    u32 instruction = memory[temp + i];
+    if (instruction_list[int(instruction)] == 2){
+      temp += 1;
+      instruction = (instruction << 8) | memory[temp + i];
+    } else if (instruction_list[int(instruction)] == 3) {
+      temp += 1;
+      instruction = (instruction << 8) | memory[temp + i];
+      temp += 1;
+      instruction = (instruction << 8) | memory[temp + i];
+    }
+    string instruction_text = get_hex_string(temp + i) + ": 0x" + get_hex_string(instruction);
     SDL_Surface* text = TTF_RenderText_Solid(regs->font, instruction_text.c_str(), color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface( renderer, text );
     SDL_Rect text_rect = {x, y, text->w, text->h};
@@ -146,10 +156,15 @@ void _8080::run() {
           break;
       }
     }
-    // instruction handling
+
     // graphics handling
     render();
 
+    // for debugging
+    cout << "Press any key to continue...";
+    cin.get();
+
+    // instruction handling
     u8 opcode = fetch_opcode();
     execute_instruction(opcode);
 
@@ -167,6 +182,7 @@ u8 _8080::fetch_opcode() {
 // check type of instruciotn using opcode and perform instruciton
 void _8080::execute_instruction(u8 opcode) {
   switch (opcode) {
+
     // 00 - 0F
     // NOP / nothing instruciton
     case 0x00:
@@ -233,11 +249,13 @@ void _8080::execute_instruction(u8 opcode) {
       printf("rotate right through carry \n");
       break;
 
+
     // 10 - 1F
     // NOP command
     case 0x10:
       printf("nothing \n");
       break;
+
 
     // 20 - 2F
     // NOP command
@@ -245,10 +263,12 @@ void _8080::execute_instruction(u8 opcode) {
       printf("nothing \n");
       break;
 
+
     // 30 - 3F
     case 0x30:
       printf("nothing \n");
       break;
+
 
     // 40 - 4F
     // MOV B,B / moves B reg into B
@@ -256,11 +276,13 @@ void _8080::execute_instruction(u8 opcode) {
       printf("moves B reg into B \n");
       break;
 
+
     // 50 - 5F
     // MOV D,B / moves B into D
     case 0x50:
       printf("moves B reg into D reg \n");
       break;
+
 
     // 60 - 6F
     // MOV H,B / moves B into H
@@ -268,11 +290,13 @@ void _8080::execute_instruction(u8 opcode) {
       printf("moves B reg into H reg \n");
       break;
 
+
     // 70 - 7F
     // MOV M,B / moves contents in B into memory location in HL
     case 0x70:
       printf("moves contents in B into memory location in HL \n");
       break;
+
 
     // 80 - 8F
     // ADD B / adds contents of B into A
@@ -280,31 +304,114 @@ void _8080::execute_instruction(u8 opcode) {
       printf("A = A + B \n");
       break;
 
+
     // 90 - 9F
     // SUB B / subtracts the contents of B from A
     case 0x90:
       printf("A = A - B \n");
       break;
      
+
     // A0 - AF
     // ANA B / bitwize and & between A and B stored in A
     case 0xA0:
-      printf("A = A & B");
+      printf("A = A & B. \n");
       break;
+
 
     // B0 - BF
     // ORA B / bitwize or | between A and B and stored in A
     case 0xB0:
-      printf("A = A | B");
+      printf("A = A | B. \n");
       break;
 
+
     // C0 - CF
-    
+    // RNZ (return if zero) / checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location 
+    case 0xC0:
+      printf("checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location. \n");
+      break;
+
+
     // D0 - DF
-     
+    // RNC / If the carry bit is zero, a return (pop 2 bytes from stack to get) operation is performed.
+    case 0xD0:
+      printf("If the carry bit is zero, a return operation is performed. \n");
+      break;
+
+
     // E0 - EF
-     
+    // RPO / If the Parity bit is zero (indicating odd parity), a return (pop 2 bytes form stack and set pc to it) operation is performed.
+    case 0xE0:
+      printf("If the Parity bit is zero (indicating odd parity), a return operation is performed. \n");
+      break;
+
+
     // F0 - FF
+    // RP / pc = (2 bytes poped from stack) if (sign flag is 0)
+    case 0xF0:
+      printf("If the Sign bit is zero (indicating a positive result). a return operation is performed. \n");  
+      break;
+    // POP PSW / PSW = (pop 2 bytes from stack)
+    case 0xF1:
+      printf("set PSW = to the top 2 bytes on the stack by poping them. \n");
+      break;
+    // JP a16 (jump if positive)/ pc = next 2 bytes in memory if sign flag = 0
+    case 0xF2:
+      printf("pc = next 2 bytes in memory if sign flag = 0. \n");
+      break;
+    // DI (dissable interupts)
+    case 0xF3:
+      printf("disable interrupts, preventing the processor from responding to interrupt requests. \n");
+      break;
+    // CP a16 / 
+    case 0xF4:
+      printf(" ");
+      break;
+    //
+    case 0xF5:
+      printf(" ");
+      break;
+    //
+    case 0xF6:
+      printf(" ");
+      break;
+    //
+    case 0xF7:
+      printf(" ");
+      break;
+    //
+    case 0xF8:
+      printf(" ");
+      break;
+    //
+    case 0xF9:
+      printf(" ");
+      break;
+    //
+    case 0xFA:
+      printf(" ");
+      break;
+    //
+    case 0xFB:
+      printf(" ");
+      break;
+    //
+    case 0xFC:
+      printf(" ");
+      break;
+    //
+    case 0xFD:
+      printf(" ");
+      break;
+    //
+    case 0xFE:
+      printf(" ");
+      break;
+    //
+    case 0xFF:
+      printf(" ");
+      break;
   }
 }
 

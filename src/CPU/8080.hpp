@@ -9,6 +9,7 @@
 #include "keys.hpp"
 #include "Screen.hpp"
 #include "Registers.hpp"
+#include "instruction_list.hpp"
 
 #define TOTAL_BYTES_OF_MEM 65536
 #define PROGRAM_START 0X000
