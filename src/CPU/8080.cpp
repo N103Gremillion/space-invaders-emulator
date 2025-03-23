@@ -84,6 +84,7 @@ void _8080::draw_instructions() {
 
   for (int i = 0; i < instructions_to_draw; i++){
     u32 instruction = memory[temp + i];
+    int index = temp + i;
     if (instruction_list[int(instruction)] == 2){
       temp += 1;
       instruction = (instruction << 8) | memory[temp + i];
@@ -93,7 +94,7 @@ void _8080::draw_instructions() {
       temp += 1;
       instruction = (instruction << 8) | memory[temp + i];
     }
-    string instruction_text = get_hex_string(temp + i) + ": 0x" + get_hex_string(instruction);
+    string instruction_text = get_hex_string(index) + ": 0x" + get_hex_string(instruction);
     SDL_Surface* text = TTF_RenderText_Solid(regs->font, instruction_text.c_str(), color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface( renderer, text );
     SDL_Rect text_rect = {x, y, text->w, text->h};
@@ -165,15 +166,15 @@ void _8080::run() {
     cin.get();
 
     // instruction handling
-    u8 opcode = fetch_opcode();
+    u8 opcode = fetch_byte();
     execute_instruction(opcode);
 
     SDL_Delay(1000);
   }
 }
 
-// use pc to get the opcode of next instruction
-u8 _8080::fetch_opcode() {
+// use pc to get the next byte in memory
+u8 _8080::fetch_byte() {
   u8 opcode = memory[regs->pc];
   regs->pc += 1;
   return opcode;
@@ -331,6 +332,16 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC0:
       printf("checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location. \n");
       break;
+    
+    // JMP a16  / 3 bytes / 10 cycles / - - - - - / uncondition jump to the mem address given by next 2 bytes in memory  
+    case 0xC3: {
+      u16 mem_location = (fetch_byte() << 8) | fetch_byte();
+      regs->pc = mem_location;
+      cycles += 10;
+    }
+
+
+
 
 
     // D0 - DF

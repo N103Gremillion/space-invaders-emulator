@@ -29,13 +29,14 @@ class _8080 {
         // window holds info about instructions that are running
         int window_w = 150;
         int window_h = 700;
+        int cycles = 0;
         SDL_Window* window; 
         SDL_Renderer* renderer;
         TTF_Font* font;
         void render();
         void fill_background();
         void draw_instructions();
-        u8 fetch_opcode();
+        u8 fetch_byte();
         void execute_instruction(u8 opcode);
 
     public:
