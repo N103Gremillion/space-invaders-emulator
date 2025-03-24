@@ -279,63 +279,123 @@ void _8080::execute_instruction(u8 opcode) {
       break;
 
 
-    // 40 - 4F
-    // MOV B,B / moves B reg into B
+    // 40 - 4F ////////////////////////////////////////////////////
+    // MOV B,B / 1 byte / 5 cycles / - - - - - / moves B reg into B
     case 0x40:
-      printf("moves B reg into B \n");
+      regs->b = regs->b;
+      break;
+    // MOV B, C / 1 byte / 5 cycles / - - - - - / moves C reg val int B
+    case 0x41:
+      regs->b = regs->c;
+      break;
+    // MOV B, D / 1 byte / 5 cycles / - - - - - / moves D reg val int B
+    case 0x42:
+      regs->b = regs->d;
+      break;
+    // MOV B, E / 1 byte / 5 cycles / - - - - - / moves E reg val int B
+    case 0x43:
+      regs->b = regs->e;
+      break;
+    // MOV B, H / 1 byte / 5 cycles / - - - - - / moves H reg val int B
+    case 0x44:
+      regs->b = regs->h;
+      break;
+    // MOV B, L / 1 byte / 5 cycles / - - - - - / moves L reg val int B
+    case 0x45:
+      regs->b = regs->l;
+      break;
+    // MOV B, M / 1 byte / 7 cycles / - - - - - / moves value form mem locatioin pointed to by HL into B
+    case 0x46:
+      regs->b = memory[regs->hl];
+      break;
+    // MOV B, A / 1 byte / 5 cycles / - - - - - / moves A reg val into B
+    case 0x47:
+      regs->b = regs->a;
+      break;
+    // MOV C, B / 1 byte / 5 cycles / - - - - - / moves B reg val into C
+    case 0x48:
+      regs->c = regs->b;
+      break;
+    // MOV C, C / 1 byte / 5 cycles / - - - - - / moves C reg val into C
+    case 0x49:
+      regs->c = regs->c;
+      break;
+    // MOV C, D / 1 byte / 5 cycles / - - - - - / moves D reg val into C
+    case 0x4A:
+      regs->c = regs->d;
+      break;
+    // MOV C, E / 1 byte / 5 cycles / - - - - - / moves E reg val into C
+    case 0x4B:
+      regs->c = regs->e;
+      break;
+    // MOV C, H / 1 byte / 5 cycles / - - - - - / moves H reg val into C
+    case 0x4C:
+      regs->c = regs->h;
+      break;
+    // MOV C, L / 1 byte / 5 cycles / - - - - - / moves L reg val into C
+    case 0x4D:
+      regs->c = regs->l;
+      break;
+    // MOV C, M / 1 byte / 7 cycles / - - - - - / moves value in memory location pointed to by HL reg val into C
+    case 0x4E:
+      regs->c = memory[regs->hl];
+      break;
+    // MOV C, A / 1 byte / 5 cycles / - - - - - / moves A reg val into C
+    case 0x4F:
+      regs->c = regs->a;
       break;
 
 
-    // 50 - 5F
+    // 50 - 5F ////////////////////////////////////////////////////
     // MOV D,B / moves B into D
     case 0x50:
       printf("moves B reg into D reg \n");
       break;
 
 
-    // 60 - 6F
+    // 60 - 6F ////////////////////////////////////////////////////
     // MOV H,B / moves B into H
     case 0x60:
       printf("moves B reg into H reg \n");
       break;
 
 
-    // 70 - 7F
+    // 70 - 7F /////////////////////////////////////////////////////
     // MOV M,B / moves contents in B into memory location in HL
     case 0x70:
       printf("moves contents in B into memory location in HL \n");
       break;
 
 
-    // 80 - 8F
+    // 80 - 8F ///////////////////////////////////////////////////////
     // ADD B / adds contents of B into A
     case 0x80:
       printf("A = A + B \n");
       break;
 
 
-    // 90 - 9F
+    // 90 - 9F ////////////////////////////////////////////////////////
     // SUB B / subtracts the contents of B from A
     case 0x90:
       printf("A = A - B \n");
       break;
      
 
-    // A0 - AF
+    // A0 - AF /////////////////////////////////////////////////////////
     // ANA B / bitwize and & between A and B stored in A
     case 0xA0:
       printf("A = A & B. \n");
       break;
 
 
-    // B0 - BF
+    // B0 - BF /////////////////////////////////////////////////////////
     // ORA B / bitwize or | between A and B and stored in A
     case 0xB0:
       printf("A = A | B. \n");
       break;
 
 
-    // C0 - CF
+    // C0 - CF ////////////////////////////////////////////////////////////
     // RNZ (return if zero) / checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location 
     case 0xC0:
       printf("checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location. \n");
@@ -352,21 +412,21 @@ void _8080::execute_instruction(u8 opcode) {
 
 
 
-    // D0 - DF
+    // D0 - DF ///////////////////////////////////////////////////////////////
     // RNC / If the carry bit is zero, a return (pop 2 bytes from stack to get) operation is performed.
     case 0xD0:
       printf("If the carry bit is zero, a return operation is performed. \n");
       break;
 
 
-    // E0 - EF
+    // E0 - EF ///////////////////////////////////////////////////////////////
     // RPO / If the Parity bit is zero (indicating odd parity), a return (pop 2 bytes form stack and set pc to it) operation is performed.
     case 0xE0:
       printf("If the Parity bit is zero (indicating odd parity), a return operation is performed. \n");
       break;
 
 
-    // F0 - FF
+    // F0 - FF //////////////////////////////////////////////////////////////
     // RP / pc = (2 bytes poped from stack) if (sign flag is 0)
     case 0xF0:
       printf("If the Sign bit is zero (indicating a positive result). a return operation is performed. \n");  
