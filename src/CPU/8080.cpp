@@ -169,7 +169,7 @@ void _8080::run() {
     u8 opcode = fetch_byte();
     execute_instruction(opcode);
 
-    SDL_Delay(1000);
+     // SDL_Delay(1000);
   }
 }
 
@@ -185,10 +185,11 @@ void _8080::execute_instruction(u8 opcode) {
   switch (opcode) {
 
     // 00 - 0F
-    // NOP / nothing instruciton
+
+    // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
     case 0x00:
-      printf("NOP do nothing \n");
       break;
+
     // LXI B, d16 / load preciding 16 bits into register BC
     case 0x01:
       printf("Load next 16 bits into BC \n");
@@ -197,14 +198,21 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x02:
       printf("store value in A reg into mem location pointed to by BC reg_pair \n");
       break;
-    // INX B (increment reg pair) / increment BC reg pair by 1
+
+    // INX B / 1 byte / 5 cycles / - - - - - / (increment reg pair) / increment BC reg pair by 1
     case 0x03:
-      printf("Increment BC reg_pair by 1 \n");
+      regs->bc++;
       break;
-    // INR B (incrment reg) / increment B reg by 1
+
+    // INR B / 1 byte / 5 cycles / S Z AC P - /  (incrment reg) / increment B reg by 1
     case 0x04:
-      printf("increment B reg by 1 \n");
+      regs->ac = check_auxilary_flag(regs->b, 1, ADD);
+      regs->b++;
+      regs->s = check_sign_flag(regs->b);
+      regs->z = check_zero_flag(regs->b);
+      regs->p = check_parity_flag(regs->b);
       break;
+
     // DCR B (decrement reg) / decrement B reg by 1
     case 0x05:
       printf("decrement B reg by 1 \n");
@@ -424,5 +432,84 @@ void _8080::execute_instruction(u8 opcode) {
       printf(" ");
       break;
   }
+}
+
+int _8080::check_sign_flag(u8 num) {
+  int msb = (0x80 & num);
+  return (msb == 0x80) ? 1 : 0;
+}
+
+int _8080::check_sign_flag(u16 num) {
+  int msb = (0x8000 & num);
+  return (msb == 0x8000) ? 1 : 0;
+}
+
+int _8080::check_zero_flag(int num) {
+  return num == 0 ? 1 : 0;
+}
+
+int _8080::check_auxilary_flag(u8 num, u8 num2, Operation operation) {
+  if (operation == ADD) {
+    if (((num & 0x0F) + (num2 & 0x0F)) > 0x0F) {
+      return 1;
+    }
+    else {
+      return 0;
+    }
+  }
+  // subtraction 
+  else if (operation == SUBTRACT) {
+    if ((num2 & 0x0F) > (num & 0x0F)) {
+      return 1;
+    }
+    else {
+      return 0;
+    }
+  }
+  // invalid operation
+  else {
+    return 0;
+  }
+}
+
+int _8080::check_parity_flag(u16 num) {
+  int count = 0;
+
+  while (num > 0) {
+    count += num & 0x1;
+    num >>= 1;
+  }
+
+  return (count % 2 == 0) ? 1 : 0;
+}
+
+int check_carry_flag(u8 num, u8 num2, Operation operation) {
+  int carry = 0;
+
+  switch (operation) {
+    case ADD:
+      carry = (num + num2) > 0xFF ? 1 : 0;
+      break;
+    case SUBTRACT:
+      carry = (num >= num2) ? 1 : 0;
+      break;
+  }
+
+  return carry;
+}
+
+int check_carry_flag(u16 num, u16 num2, Operation operation) {
+  int carry = 0;
+
+  switch (operation) {
+    case ADD:
+      carry = (num + num2) > 0xFFFF ? 1 : 0;
+      break;
+    case SUBTRACT:
+      carry = (num >= num2) ? 1 : 0;
+      break;
+  }
+
+  return carry;
 }
 

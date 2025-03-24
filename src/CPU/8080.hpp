@@ -22,6 +22,17 @@ using namespace std;
 // size is either 8, 16 or 24 depending on the instruction size
 string get_hex_string(int num);
 
+// operations
+enum Operation {
+    ADD,
+    SUBTRACT,
+    ROL, // rotate left
+    ROR, // rotate right
+    AND, // Logical AND
+    OR, // Logical OR
+    XOR // Logical XOR
+};
+
 class _8080 {
     private:
         // screen is the game screen
@@ -44,6 +55,13 @@ class _8080 {
         u8* memory;
         void load_rom(const string& file_path, u16 start_address);
         void run();
+        int check_zero_flag(int num); // return value of zero flag 
+        int check_sign_flag(u8 num); // for u8 return value of sign flag
+        int check_sign_flag(u16 num); // for u16 return value of sign flag
+        int check_auxilary_flag(u8 num, u8 num2, Operation operation); // return value of aux flag after a given operation
+        int check_parity_flag(u16 num); // return value of parity flag 
+        int check_carry_flag(u8 num, u8 num2, Operation operation);
+        int check_carry_flag(u16 num, u16 num2, Operation operation);
         _8080();
         ~_8080();
 };
