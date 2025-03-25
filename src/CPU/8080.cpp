@@ -347,16 +347,135 @@ void _8080::execute_instruction(u8 opcode) {
 
 
     // 50 - 5F ////////////////////////////////////////////////////
-    // MOV D,B / moves B into D
+    // MOV D,B / 1 byte / 5 cycles /  moves B into D
     case 0x50:
-      printf("moves B reg into D reg \n");
+      regs->d = regs->b;
+      break;
+    // MOV D, C /  1 byte / 5 cycles / moves C into D
+    case 0x51:
+      regs->d = regs->c;
+      break;
+    // MOV D, D /  1 byte / 5 cycles / moves D into D
+    case 0x52:
+      regs->d = regs->d;
+      break;
+    // MOV D, E /  1 byte / 5 cycles / moves E into D
+    case 0x53:
+      regs->d = regs->e;
+      break;
+    // MOV D, H /  1 byte / 5 cycles / moves H into D
+    case 0x54:
+      regs->d = regs->h;
+      break;
+    // MOV D, L /  1 byte / 5 cycles / moves L into D
+    case 0x55:
+      regs->d = regs->l;
+      break;
+    // MOV D, M /  1 byte / 7 cycles / moves contents in memory location spcified by HL into D reg
+    case 0x56:  
+      regs->d = memory[regs->hl];
+      break;
+    // MOV D, A /  1 byte / 5 cycles / moves A into D
+    case 0x57:
+      regs->d = regs->a;
+      break;
+    // MOV E, B / 1 byte / 5 cycles / moves B into E
+    case 0x58:
+      regs->e = regs->b;
+      break;
+    // MOV E, C / 1 byte / 5 cycles / moves C into E
+    case 0x59:
+      regs->e = regs->c;
+      break;
+    // MOV E, D / 1 byte / 5 cycles / moves D into E
+    case 0x5A:
+      regs->e = regs->d;
+      break;
+    // MOV E, E / 1 byte / 5 cycles / moves E into E
+    case 0x5B:
+      regs->e = regs->e;
+      break;
+    // MOV E, H / 1 byte / 5 cycles / moves H into E
+    case 0x5C:
+      regs->e = regs->h;
+      break;
+    // MOV E, L / 1 byte / 5 cycles / moves L into E
+    case 0x5D:
+      regs->e = regs->l;
+      break;
+    // MOV E, M / 1 byte / 7 cycles / moves contents in memory location refered to by HL into E
+    case 0x5E:
+      regs->e = memory[regs->hl];
+      break;
+    // MOV E, A / 1 byte / 5 cycles / moves the contents of A into E
+    case 0x5F:
+      regs->e = regs->a;
       break;
 
-
     // 60 - 6F ////////////////////////////////////////////////////
-    // MOV H,B / moves B into H
+    // MOV H,B / 1 byte / 5 cycles / moves B into H
     case 0x60:
-      printf("moves B reg into H reg \n");
+      regs->h = regs->b;
+      break;
+    // MOV H,C / 1 byte / 5 cycles / moves C into H
+    case 0x61:
+      regs->h = regs->c;
+      break;
+    // MOV H,D / 1 byte / 5 cycles / moves D into H
+    case 0x62:
+      regs->h = regs->d;
+      break;
+    // MOV H,E / 1 byte / 5 cycles / moves E into H
+    case 0x63:
+      regs->h = regs->e;
+      break;
+    // MOV H,H / 1 byte / 5 cycles / moves H into H
+    case 0x64:
+      regs->h = regs->h;
+      break;
+    // MOV H,L / 1 byte / 5 cycles / moves L into H
+    case 0x65:
+      regs->h = regs->l;
+      break;
+    // MOV H,M / 1 byte / 7 cycles / moves the value in memory reference by the value in reg HL and sets it to H
+    case 0x66:
+      regs->h = memory[regs->hl];
+      break;
+    // MOV H,A / 1 byte / 5 cycles / moves A into H
+    case 0x67:
+      regs->h = regs->a;
+      break;
+    // MOV L,B / 1 byte / 5 cycles / moves B into L
+    case 0x68:
+      regs->l = regs->b;
+      break;
+    // MOV L,C / 1 byte / 5 cycles / moves C into L
+    case 0x69:
+      regs->l = regs->c;
+      break;
+    // MOV L,D / 1 byte / 5 cycles / moves D into L
+    case 0x6A:
+      regs->l = regs->d;
+      break;
+    // MOV L,E / 1 byte / 5 cycles / moves E into L
+    case 0x6B:
+      regs->l = regs->e;
+      break;
+    // MOV L,H / 1 byte / 5 cycles / moves H into L
+    case 0x6C:
+      regs->l = regs->h;
+      break;
+    // MOV L,L / 1 byte / 5 cycles / moves L into L
+    case 0x6D:
+      regs->l = regs->l;
+      break;
+    // MOV L,M / 1 byte / 7 cylces / moves the value in memory referenced by HL into the L reg
+    case 0x6E:
+      regs->l = memory[regs->hl];
+      break;
+    // MOV L,A / 1 byte / 5 cycles / moves A into L
+    case 0x6F:
+      regs->l = regs->a;
       break;
 
 
