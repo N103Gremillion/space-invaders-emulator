@@ -480,9 +480,50 @@ void _8080::execute_instruction(u8 opcode) {
 
 
     // 70 - 7F /////////////////////////////////////////////////////
-    // MOV M,B / moves contents in B into memory location in HL
+    // MOV M,B / 1 byte / 7 cycles /  moves contents in B into memory location reference by HL
     case 0x70:
-      printf("moves contents in B into memory location in HL \n");
+      memory[regs->hl] = regs->b;
+      break;
+    // MOV M,C / 1 byte / 7 cycles /  moves contents in C into memory location reference by HL
+    case 0x71:
+      memory[regs->hl] = regs->c;
+      break;
+    // MOV M,D / 1 byte / 7 cycles /  moves contents in D into memory location reference by HL
+    case 0x72:
+      memory[regs->hl] = regs->d;
+      break;
+    // MOV M,E / 1 byte / 7 cycles /  moves contents in E into memory location reference by HL
+    case 0x73:
+      memory[regs->hl] = regs->e;
+      break;
+    // MOV M,H / 1 byte / 7 cycles /  moves contents in H into memory location reference by HL
+    case 0x74:
+      memory[regs->hl] = regs->h;
+      break;
+    // MOV M,L / 1 byte / 7 cycles /  moves contents in L into memory location reference by HL
+    case 0x75:
+      memory[regs->hl] = regs->l;
+      break;
+    // HLT / 1 byte / 7 cycles / 
+    case 0x76:
+      break;
+    case 0x77:
+      break;
+    case 0x78:
+      break;
+    case 0x79:
+      break;
+    case 0x7A:
+      break;
+    case 0x7B:
+      break;
+    case 0x7C:
+      break;
+    case 0x7D:
+      break;
+    case 0x7E:
+      break;
+    case 0x7F:
       break;
 
 
