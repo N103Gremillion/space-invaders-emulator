@@ -26,8 +26,7 @@ string get_hex_string(int num);
 enum Operation {
     ADD,
     SUBTRACT,
-    ROL, // rotate left
-    ROR, // rotate right
+    RLC, // rotate left through carry
     AND, // Logical AND
     OR, // Logical OR
     XOR // Logical XOR
@@ -47,7 +46,8 @@ class _8080 {
         void render();
         void fill_background();
         void draw_instructions();
-        u8 fetch_byte();
+        u8 fetch_byte(); // fetch bytes
+        u16 fetch_bytes(); // fetch next 2 bytes
         void execute_instruction(u8 opcode);
 
     public:

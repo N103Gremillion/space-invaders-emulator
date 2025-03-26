@@ -163,12 +163,9 @@ void _8080::run() {
 
     // for debugging
     cout << "Press any key to continue...";
-    cin.get();
-
-    // instruction handling
-    u8 opcode = fetch_byte();
-    execute_instruction(opcode);
-
+    cin.get();// u16 low = fetch_byte();
+      // u16 high = fetch_byte();
+      // cout << hex << ((high << 8) | low) << endl;
      // SDL_Delay(1000);
   }
 }
@@ -180,6 +177,17 @@ u8 _8080::fetch_byte() {
   return opcode;
 }
 
+// fetch the next 2 bytes in memory
+u16 _8080::fetch_bytes() {
+  static int i = 0;
+  i++;
+  u8* start = &(memory[regs->pc]);
+  u16* bytes = (u16*) (start);
+  // cout << hex << *(bytes) << endl;
+  regs->pc += 2;
+  return *bytes;
+}
+
 // check type of instruciotn using opcode and perform instruciton
 void _8080::execute_instruction(u8 opcode) {
   switch (opcode) {
@@ -188,22 +196,25 @@ void _8080::execute_instruction(u8 opcode) {
 
     // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
     case 0x00:
+      cycles += 4;
       break;
-
-    // LXI B, d16 / load preciding 16 bits into register BC
-    case 0x01:
-      printf("Load next 16 bits into BC \n");
+    // LXI B, d16 / 3 byte / 10 cycles / - - - - - / load preciding 16 bits into register BC
+    case 0x01: {
+      u16 bytes = fetch_bytes();    
+      regs->bc = bytes;
+      cycles += 10;
       break;
-    // STAX (store accumulator inderectly) B / store value of A reg into memory location pointed to by BC reg_pair
+    }
+    // STAX (store accumulator inderectly) B / 1 byte / 7 cycles / - - - - - /  store value of A reg into memory location pointed to by BC reg_pair
     case 0x02:
-      printf("store value in A reg into mem location pointed to by BC reg_pair \n");
+      memory[regs->bc] = regs->a;
+      cycles += 7;
       break;
-
     // INX B / 1 byte / 5 cycles / - - - - - / (increment reg pair) / increment BC reg pair by 1
     case 0x03:
       regs->bc++;
+      cycles += 5;
       break;
-
     // INR B / 1 byte / 5 cycles / S Z AC P - /  (incrment reg) / increment B reg by 1
     case 0x04:
       regs->ac = check_auxilary_flag(regs->b, 1, ADD);
@@ -211,71 +222,411 @@ void _8080::execute_instruction(u8 opcode) {
       regs->s = check_sign_flag(regs->b);
       regs->z = check_zero_flag(regs->b);
       regs->p = check_parity_flag(regs->b);
+      cycles += 5;
       break;
-
-    // DCR B (decrement reg) / decrement B reg by 1
+    // DCR B / 1 byte / 5 cycles / S Z AC P - / (decrement reg) / decrement B reg by 1
     case 0x05:
-      printf("decrement B reg by 1 \n");
+      regs->ac = check_auxilary_flag(regs->b, 1, SUBTRACT);
+      regs->b--;
+      regs->s = check_sign_flag(regs->b);
+      regs->z = check_zero_flag(regs->b);
+      regs->p = check_parity_flag(regs->b);
+      cycles += 5;
       break;
-    // MVI B, d8 (move immediate) / move d8 value into B reg
+    // MVI B, d8 (move immediate) / 2 byte / 7 cycle / - - - - - / move d8 value into B reg
     case 0x06:
-      printf("move the proceding 8 bits into B reg \n");
+      regs->b = fetch_byte();
+      cycles += 7;
       break;
-    // RLC (Rotate left through carry) / shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value
+    // RLC / 1 byte / 4 cycles / - - - - C / (Rotate left through carry) / shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value
     case 0x07:
-      printf("shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value \n");
+      regs->ca = check_carry_flag(regs->a, 0, RLC);
+      regs->a = (regs->a << 1) | regs->ca; 
+      cycles += 4;
       break;
-    // another NOP
+    // NOP / 1 byte / 4 cycles / nothing
     case 0x08:
-      printf("another NOP \n");
+      cycles += 4;
       break;
-    // DAD B (double add) / add value in BC reg pair to HL reg pair (modifies the carry flag if there is overflow)
+    // DAD B / 1 byte / 10 cycles / - - - - CA / (double add) / add value in BC reg pair to HL reg pair (modifies the carry flag if there is overflow)
     case 0x09:
-      printf("add value in BC reg pair to HL reg pair (modifies the carry flag if there is overflow) \n");
+      regs->ca = check_carry_flag(regs->hl, regs->bc, ADD);
+      regs->hl = regs->hl + regs->bc;
+      cycles += 10;
       break;
-    // LDAX B (load accumulator from mem) / load memory address pointed to by BC (memory[BC]) into A reg 
+    // LDAX B / 1 byte / 7 cycles / (load accumulator from mem) / load memory address pointed to by BC (memory[BC]) into A reg 
     case 0x0A:
-      printf("load memory address pointed to by BC (memory[BC]) into A reg \n");
+      regs->a = memory[regs->bc];
+      cycles += 7;
       break;
-    // DCX B (decremnt hex value(16 bit)) / decremtn BC reg pair by 1
+    // DCX B / 1 byte / 5 cyles / - - - - - / decrement BC
     case 0x0B:
-      printf("decrement BC reg pair by 1 \n");
+      regs->bc--;
+      cycles += 5;
       break;
-    // INC C / incremtent c by 1 (note affects many flags)
+    // INC C / 1 byte / 5 cycles / S Z A P - / incremtent c by 1 
     case 0x0C:
-      printf("incremtent c by 1 (note affects many flags) \n");
+      regs->ac = check_auxilary_flag(regs->c, 1, ADD);
+      regs->c++;
+      regs->s = check_sign_flag(regs->c);
+      regs->z = check_zero_flag(regs->c);
+      regs->p = check_parity_flag(regs->c);
+      cycles += 5;
       break;
-    // DCR C / decrement c by 1
+    // DCR C / 1 byte / 5 cycles / S Z AC P - / decrement c by 1
     case 0x0D:
-      printf("decrement c by 1 \n");
+      regs->ac = check_auxilary_flag(regs->c, 1, SUBTRACT);
+      regs->c--;
+      regs->s = check_sign_flag(regs->c);
+      regs->z = check_zero_flag(regs->c);
+      regs->p = check_parity_flag(regs->c);
+      cycles += 5;
       break;
-    // MVI, C, d8 / move next byte into C reg
+    // MVI, C, d8 / 2 bytes / 7 cycles / - - - - - / move next byte into C reg
     case 0x0E:
-      printf("move next byte into C reg \n");
+      regs->c = fetch_byte();
+      cycles += 7;
       break;
-    // RRC / rotate right through carry 
-    case 0x0F:
-      printf("rotate right through carry \n");
+    // RRC / 1 byte / 4 cycles / - - - - CA / rotate accumulator right
+    case 0x0F: {
+      int low_bit = (regs->a & 0x01);
+      regs->ca = low_bit;
+      regs->a = (regs->a >> 1);
+      regs->a = (regs->a | (low_bit << 7));
+      cycles += 4;
       break;
+    }
 
 
-    // 10 - 1F
-    // NOP command
+    // 10 - 1F ///////////////////////////////////////////////////
+    // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
     case 0x10:
-      printf("nothing \n");
+      cycles += 4;
       break;
+    // LXI D, d16 / 3 bytes / 10 cycles / - - - - - / load the next 2 bytes in memory into reg-pair DE
+    case 0x11: {
+      u16 bytes = fetch_bytes();
+      regs->de = bytes;
+      cycles += 10;
+      break;
+    }
+    // STAX D / 1 byte / 7 cycles / - - - - - / contents of A are stroed in memory reference by the location in DE reg-pair
+    case 0x12:
+      memory[regs->de] = regs->a;
+      cycles += 7;
+      break;
+    // INX D / 1 byte / 5 cycles / - - - - - / DE ++
+    case 0x13:
+      regs->de++;
+      cycles += 5;
+      break;
+    // INR D / 1 byte / 5 cycles / S Z AC P - /  (incrment reg) / increment D reg by 1
+    case 0x14:
+      regs->ac = check_auxilary_flag(regs->d, 1, ADD);
+      regs->d++;
+      regs->s = check_sign_flag(regs->d);
+      regs->z = check_zero_flag(regs->d);
+      regs->p = check_parity_flag(regs->d);
+      cycles += 5;
+      break;
+    // DCR D / 1 byte / 5 cycles / S Z AC P - / (decrement reg) / decrement D reg by 1
+    case 0x15:
+      regs->ac = check_auxilary_flag(regs->d, 1, SUBTRACT);
+      regs->d--;
+      regs->s = check_sign_flag(regs->d);
+      regs->z = check_zero_flag(regs->d);
+      regs->p = check_parity_flag(regs->d);
+      cycles += 5;
+      break;
+    // MVI D, d8 (move immediate) / 2 byte / 7 cycle / - - - - - / move d8 value into D reg
+    case 0x16:
+      regs->d = fetch_byte();
+      cycles += 7;
+      break;
+    // RAL / 1 byte / 4 cycles / - - - - C / A is rotated << 1 and the high bit replaces the carry bit while carry replaces the high bit
+    case 0x17: {
+      int cur_carry = regs->ca;
+      regs->ca = (regs->a & 0x80) >> 7;
+      regs->a = (regs->a << 1) | cur_carry;
+      cycles += 4;
+      break;
+    }
+    // NOP / 1 byte / 4 cycles / nothing
+    case 0x18:
+      cycles += 4;
+      break;
+    // DAD D / 1 byte / 10 cycles / - - - - CA / (double add) / add value in DE reg pair to HL reg pair (modifies the carry flag if there is overflow)
+    case 0x19:
+      regs->ca = check_carry_flag(regs->hl, regs->de, ADD);
+      regs->hl = regs->hl + regs->de;
+      cycles += 10;
+      break;
+    // LDAX D / 1 byte / 7 cycles / (load accumulator from mem) / load memory address pointed to by DE (memory[DE]) into A reg 
+    case 0x1A:
+      regs->a = memory[regs->de];
+      cycles += 7;
+      break;
+    // DCX D / 1 byte / 5 cyles / - - - - - / decrement DE
+    case 0x1B:
+      regs->de--;
+      cycles += 5;
+      break;
+    // INC E / 1 byte / 5 cycles / S Z A P - / incremtent e by 1 
+    case 0x1C:
+      regs->ac = check_auxilary_flag(regs->e, 1, ADD);
+      regs->e++;
+      regs->s = check_sign_flag(regs->e);
+      regs->z = check_zero_flag(regs->e);
+      regs->p = check_parity_flag(regs->e);
+      cycles += 5;
+      break;
+    // DCR E / 1 byte / 5 cycles / S Z AC P - / decrement e by 1
+    case 0x1D:
+      regs->ac = check_auxilary_flag(regs->e, 1, SUBTRACT);
+      regs->e--;
+      regs->s = check_sign_flag(regs->e);
+      regs->z = check_zero_flag(regs->e);
+      regs->p = check_parity_flag(regs->e);
+      cycles += 5;
+      break;
+    // MVI, E, d8 / 2 bytes / 7 cycles / - - - - - / move next byte into E reg
+    case 0x1E:
+      regs->e = fetch_byte();
+      cycles += 7;
+      break;
+    // RAR / 1 byte / 4 cycles / - - - - CA / rotate accumulator right
+    case 0x1F: {
+      int prev_carry = regs->ca;
+      regs->ca = (regs->a & 0x01);
+      regs->a = (regs->a >> 1);
+      regs->a = (regs->a | (prev_carry << 7));
+      cycles += 4;
+      break;
+    }
 
-
-    // 20 - 2F
-    // NOP command
+    // 20 - 2F /////////////////////////////////////////////////////
+    // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
     case 0x20:
-      printf("nothing \n");
+      cycles += 4;
+      break;
+    // LXI H, d16 / 3 bytes / 10 cycles / - - - - - / HL = (next 2 bytes)
+    case 0x21: {
+      u16 bytes  = fetch_bytes();
+      regs->hl = bytes;
+      cycles += 10;
+      break;
+    }
+    // SHLD a16 / 3 bytes / 16 cycles / - - - - - /  memory location referenced by next 2 bytes is set to L and the next memory location after is set to H
+    case 0x22: {
+      u16 address = fetch_bytes();
+      memory[address] = regs->l;
+      memory[address + 1] = regs->h;
+      cycles += 16;
+      break;
+    }
+    // INX H / 1 byte / 5 cycles / - - - - - / HL ++
+    case 0x23:
+      regs->hl++;
+      cycles += 5;
+      break;
+    // INR H / 1 byte / 5 cycles / S Z AC P - /  (incrment reg) / increment H reg by 1
+    case 0x24:
+      regs->ac = check_auxilary_flag(regs->h, 1, ADD);
+      regs->h++;
+      regs->s = check_sign_flag(regs->h);
+      regs->z = check_zero_flag(regs->h);
+      regs->p = check_parity_flag(regs->h);
+      cycles += 5;
+      break;
+    // DCR H / 1 byte / 5 cycles / S Z AC P - / (decrement reg) / decrement H reg by 1
+    case 0x25:
+      regs->ac = check_auxilary_flag(regs->h, 1, SUBTRACT);
+      regs->h--;
+      regs->s = check_sign_flag(regs->h);
+      regs->z = check_zero_flag(regs->h);
+      regs->p = check_parity_flag(regs->h);
+      cycles += 5;
+      break;
+    // MVI H, d8 (move immediate) / 2 byte / 7 cycle / - - - - - / move d8 value into H reg
+    case 0x26:
+      regs->h = fetch_byte();
+      cycles += 7;
+      break;
+    // DAA / 1 byte / 4 cycle / S Z AC P CA / (decimal adjust accumulator) 
+    case 0x27: {
+      u8 ls_4bits = (regs->a & 0x0F);
+      if ((ls_4bits > 9) || (regs->ac == 1)) {
+        regs->ac = check_auxilary_flag(regs->a, 6, ADD);
+        regs->a += 6;
+      }
+      u8 ms_4bits = (regs->a >> 4);
+      if ((ms_4bits > 9) || (regs->ca == 1)) {
+        regs->ca = check_carry_flag(regs->a, 0x60, ADD);
+        regs->a += 0x60;
+      }
+      regs->s = check_sign_flag(regs->a);
+      regs->z = check_zero_flag(regs->a);
+      regs->p = check_parity_flag(regs->a);
+      cycles += 4;
+      break;
+    }
+    // NOP / 1 byte / 4 cycles / nothing
+    case 0x28:
+      cycles += 4;
+      break;
+    // DAD H / 1 byte / 10 cycles / - - - - CA / (double add) / add value in HL reg pair to HL reg pair (modifies the carry flag if there is overflow)
+    case 0x29:
+      regs->ca = check_carry_flag(regs->hl, regs->hl, ADD);
+      regs->hl = regs->hl + regs->hl;
+      cycles += 10;
+      break;
+    // LHLD a16, / 3 byte / 16 cycles / takes 16 bit address and loads content of memory into HL
+    case 0x2A: {
+      u16 address = fetch_bytes();
+      regs->l = memory[address];
+      regs->h = memory[address + 1];
+      cycles += 16;
+      break;
+    }
+    // DCX H / 1 byte / 5 cyles / - - - - - / decrement HL
+    case 0x2B:
+      regs->hl--;
+      cycles += 5;
+      break;
+    // INC L / 1 byte / 5 cycles / S Z A P - / incremtent L by 1 
+    case 0x2C:
+      regs->ac = check_auxilary_flag(regs->l, 1, ADD);
+      regs->l++;
+      regs->s = check_sign_flag(regs->l);
+      regs->z = check_zero_flag(regs->l);
+      regs->p = check_parity_flag(regs->l);
+      cycles += 5;
+      break;
+    // DCR L / 1 byte / 5 cycles / S Z AC P - / decrement l by 1
+    case 0x2D:
+      regs->ac = check_auxilary_flag(regs->l, 1, SUBTRACT);
+      regs->l--;
+      regs->s = check_sign_flag(regs->l);
+      regs->z = check_zero_flag(regs->l);
+      regs->p = check_parity_flag(regs->l);
+      cycles += 5;
+      break;
+    // MVI, L, d8 / 2 bytes / 7 cycles / - - - - - / move next byte into l reg
+    case 0x2E:
+      regs->l = fetch_byte();
+      cycles += 7;
+      break;
+    // CMA / 1 byte / 4 cycles / - - - - - / complement accumulator
+    case 0x2F:
+      regs->a = ~regs->a;
+      cycles += 4;
       break;
 
-
-    // 30 - 3F
+    // 30 - 3F ////////////////////////////////////////////////////
+    // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
     case 0x30:
-      printf("nothing \n");
+      cycles += 4;
+      break;
+    // LXI SP, d16 / 3 bytes / 10 cycles / - - - - - / SP = (next 2 bytes)
+    case 0x31: {
+      u16 bytes = fetch_bytes();
+      regs->sp = bytes;
+      cycles += 10;
+      break;
+    }
+    // STA, a16 / 3 bytes / 13 cycles / - - - - - / memory location referenced by next 2 bytes is set to the A reg
+    case 0x32: {
+      u16 address = fetch_bytes();
+      memory[address] = regs->a;
+      cycles += 13;
+      break;
+    }
+    // INX SP / 1 byte / 5 cycles / - - - - - / SP ++
+    case 0x33:
+      regs->sp++;
+      cycles += 5;
+      break;
+    // INR M / 1 byte / 10 cycles / S Z AC P - / increment value stored in memory loaction referenced by HL reg_pair
+    case 0x34: {
+      u8 val = memory[regs->hl];
+      regs->ac = check_auxilary_flag(val, 1, ADD);
+      val++;
+      memory[regs->hl] = val;
+      regs->s = check_sign_flag(val);
+      regs->z = check_zero_flag(val);
+      regs->p = check_parity_flag(val);
+      cycles += 10;
+      break;
+    }
+    // DCR M / 1 byte / 10 cycles / S Z AC P - / decrement value stored in memory loaction referenced by HL reg_pair
+    case 0x35: {
+      u8 val = memory[regs->hl];    
+      regs->ac = check_auxilary_flag(val, 1, SUBTRACT);
+      val--;
+      memory[regs->hl] = val;
+      regs->s = check_sign_flag(val);
+      regs->z = check_zero_flag(val);
+      regs->p = check_parity_flag(val);
+      cycles += 10;
+      break;
+    }
+    // MVI M, d8 (move immediate) / 2 byte / 10 cycle / - - - - - / move d8 value into memory with reference in HL
+    case 0x36:
+      memory[regs->hl] = fetch_byte();
+      cycles += 10;
+      break;
+    // STC / 1 byte / 4 cycle / - - - - CA / carry bit set to 1
+    case 0x37:
+      regs->ca = 1;
+      cycles += 4;
+      break;
+    // NOP / 1 byte / 4 cycles / nothing
+    case 0x38:
+      cycles += 4;
+      break;
+    // DAD SP / 1 byte / 10 cycles / - - - - CA / (double add) / add value in SP reg pair to HL reg pair (modifies the carry flag if there is overflow)
+    case 0x39:
+      regs->ca = check_carry_flag(regs->hl, regs->sp, ADD);
+      regs->hl = regs->hl + regs->sp;
+      cycles += 10;
+      break; 
+    // LDA a16 / 3 bytes / 13 cycles / - - - - - / load the byte in memory loaction refered to by next 2 bytes into a reg
+    case 0x3A:
+      regs->a = memory[fetch_bytes()];
+      cycles += 13;
+      break;
+    // DCX SP / 1 byte / 5 cyles / - - - - - / decrement SP
+    case 0x3B:
+      regs->sp--;
+      cycles += 5;
+      break;
+    // INC A / 1 byte / 5 cycles / S Z A P - / incremtent A by 1 
+    case 0x3C:
+      regs->ac = check_auxilary_flag(regs->a, 1, ADD);
+      regs->a++;
+      regs->s = check_sign_flag(regs->a);
+      regs->z = check_zero_flag(regs->a);
+      regs->p = check_parity_flag(regs->a);
+      cycles += 5;
+      break;
+    // DCR A / 1 byte / 5 cycles / S Z AC P - / decrement a by 1
+    case 0x3D:
+      regs->ac = check_auxilary_flag(regs->a, 1, SUBTRACT);
+      regs->a--;
+      regs->s = check_sign_flag(regs->a);
+      regs->z = check_zero_flag(regs->a);
+      regs->p = check_parity_flag(regs->a);
+      cycles += 5;
+      break;
+    // MVI A, d8 / 2 bytes / 7 cycles / - - - - - / move next byte into a reg
+    case 0x3E:
+      regs->a = fetch_byte();
+      cycles += 7;
+      break;
+    // CMC / 1 byte / 4 cycles / - - - - CA / flips the cary bit
+    case 0x3F:
+      regs->ca = ~regs->ca;
+      cycles += 4;
       break;
 
 
@@ -283,66 +634,82 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV B,B / 1 byte / 5 cycles / - - - - - / moves B reg into B
     case 0x40:
       regs->b = regs->b;
+      cycles += 5;
       break;
     // MOV B, C / 1 byte / 5 cycles / - - - - - / moves C reg val int B
     case 0x41:
       regs->b = regs->c;
+      cycles += 5;
       break;
     // MOV B, D / 1 byte / 5 cycles / - - - - - / moves D reg val int B
     case 0x42:
       regs->b = regs->d;
+      cycles += 5;
       break;
     // MOV B, E / 1 byte / 5 cycles / - - - - - / moves E reg val int B
     case 0x43:
       regs->b = regs->e;
+      cycles += 5;
       break;
     // MOV B, H / 1 byte / 5 cycles / - - - - - / moves H reg val int B
     case 0x44:
       regs->b = regs->h;
+      cycles += 5;
       break;
     // MOV B, L / 1 byte / 5 cycles / - - - - - / moves L reg val int B
     case 0x45:
       regs->b = regs->l;
+      cycles += 5;
       break;
     // MOV B, M / 1 byte / 7 cycles / - - - - - / moves value form mem locatioin pointed to by HL into B
     case 0x46:
       regs->b = memory[regs->hl];
+      cycles += 7;
       break;
     // MOV B, A / 1 byte / 5 cycles / - - - - - / moves A reg val into B
     case 0x47:
       regs->b = regs->a;
+      cycles += 5;
       break;
     // MOV C, B / 1 byte / 5 cycles / - - - - - / moves B reg val into C
     case 0x48:
       regs->c = regs->b;
+      cycles += 5;
       break;
     // MOV C, C / 1 byte / 5 cycles / - - - - - / moves C reg val into C
     case 0x49:
       regs->c = regs->c;
+      cycles += 5;
       break;
     // MOV C, D / 1 byte / 5 cycles / - - - - - / moves D reg val into C
     case 0x4A:
       regs->c = regs->d;
+      cycles += 5;
       break;
     // MOV C, E / 1 byte / 5 cycles / - - - - - / moves E reg val into C
     case 0x4B:
       regs->c = regs->e;
+      cycles += 5;
       break;
     // MOV C, H / 1 byte / 5 cycles / - - - - - / moves H reg val into C
     case 0x4C:
       regs->c = regs->h;
+      cycles += 5;
       break;
     // MOV C, L / 1 byte / 5 cycles / - - - - - / moves L reg val into C
     case 0x4D:
       regs->c = regs->l;
+      cycles += 5;
       break;
     // MOV C, M / 1 byte / 7 cycles / - - - - - / moves value in memory location pointed to by HL reg val into C
     case 0x4E:
       regs->c = memory[regs->hl];
+      cycles += 7;
       break;
     // MOV C, A / 1 byte / 5 cycles / - - - - - / moves A reg val into C
     case 0x4F:
       regs->c = regs->a;
+      cycles += 5;
       break;
 
 
@@ -350,132 +717,164 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV D,B / 1 byte / 5 cycles /  moves B into D
     case 0x50:
       regs->d = regs->b;
+      cycles += 5;
       break;
     // MOV D, C /  1 byte / 5 cycles / moves C into D
     case 0x51:
       regs->d = regs->c;
+      cycles += 5;
       break;
     // MOV D, D /  1 byte / 5 cycles / moves D into D
     case 0x52:
       regs->d = regs->d;
+      cycles += 5;
       break;
     // MOV D, E /  1 byte / 5 cycles / moves E into D
     case 0x53:
       regs->d = regs->e;
+      cycles += 5;
       break;
     // MOV D, H /  1 byte / 5 cycles / moves H into D
     case 0x54:
       regs->d = regs->h;
+      cycles += 5;
       break;
     // MOV D, L /  1 byte / 5 cycles / moves L into D
     case 0x55:
       regs->d = regs->l;
+      cycles += 5;
       break;
     // MOV D, M /  1 byte / 7 cycles / moves contents in memory location spcified by HL into D reg
     case 0x56:  
       regs->d = memory[regs->hl];
+      cycles += 7;
       break;
     // MOV D, A /  1 byte / 5 cycles / moves A into D
     case 0x57:
       regs->d = regs->a;
+      cycles += 5;
       break;
     // MOV E, B / 1 byte / 5 cycles / moves B into E
     case 0x58:
       regs->e = regs->b;
+      cycles += 5;
       break;
     // MOV E, C / 1 byte / 5 cycles / moves C into E
     case 0x59:
       regs->e = regs->c;
+      cycles += 5;
       break;
     // MOV E, D / 1 byte / 5 cycles / moves D into E
     case 0x5A:
       regs->e = regs->d;
+      cycles += 5;
       break;
     // MOV E, E / 1 byte / 5 cycles / moves E into E
     case 0x5B:
       regs->e = regs->e;
+      cycles += 5;
       break;
     // MOV E, H / 1 byte / 5 cycles / moves H into E
     case 0x5C:
       regs->e = regs->h;
+      cycles += 5;
       break;
     // MOV E, L / 1 byte / 5 cycles / moves L into E
     case 0x5D:
       regs->e = regs->l;
+      cycles += 5;
       break;
     // MOV E, M / 1 byte / 7 cycles / moves contents in memory location refered to by HL into E
     case 0x5E:
       regs->e = memory[regs->hl];
+      cycles += 7;
       break;
     // MOV E, A / 1 byte / 5 cycles / moves the contents of A into E
     case 0x5F:
       regs->e = regs->a;
+      cycles += 5;
       break;
 
     // 60 - 6F ////////////////////////////////////////////////////
     // MOV H,B / 1 byte / 5 cycles / moves B into H
     case 0x60:
       regs->h = regs->b;
+      cycles += 5;
       break;
     // MOV H,C / 1 byte / 5 cycles / moves C into H
     case 0x61:
       regs->h = regs->c;
+      cycles += 5;
       break;
     // MOV H,D / 1 byte / 5 cycles / moves D into H
     case 0x62:
       regs->h = regs->d;
+      cycles += 5;
       break;
     // MOV H,E / 1 byte / 5 cycles / moves E into H
     case 0x63:
       regs->h = regs->e;
+      cycles += 5;
       break;
     // MOV H,H / 1 byte / 5 cycles / moves H into H
     case 0x64:
       regs->h = regs->h;
+      cycles += 5;
       break;
     // MOV H,L / 1 byte / 5 cycles / moves L into H
     case 0x65:
       regs->h = regs->l;
+      cycles += 5;
       break;
     // MOV H,M / 1 byte / 7 cycles / moves the value in memory reference by the value in reg HL and sets it to H
     case 0x66:
       regs->h = memory[regs->hl];
+      cycles += 7;
       break;
     // MOV H,A / 1 byte / 5 cycles / moves A into H
     case 0x67:
       regs->h = regs->a;
+      cycles += 5;
       break;
     // MOV L,B / 1 byte / 5 cycles / moves B into L
     case 0x68:
       regs->l = regs->b;
+      cycles += 5;
       break;
     // MOV L,C / 1 byte / 5 cycles / moves C into L
     case 0x69:
       regs->l = regs->c;
+      cycles += 5;
       break;
     // MOV L,D / 1 byte / 5 cycles / moves D into L
     case 0x6A:
       regs->l = regs->d;
+      cycles += 5;
       break;
     // MOV L,E / 1 byte / 5 cycles / moves E into L
     case 0x6B:
       regs->l = regs->e;
+      cycles += 5;
       break;
     // MOV L,H / 1 byte / 5 cycles / moves H into L
     case 0x6C:
       regs->l = regs->h;
+      cycles += 5;
       break;
     // MOV L,L / 1 byte / 5 cycles / moves L into L
     case 0x6D:
       regs->l = regs->l;
+      cycles += 5;
       break;
     // MOV L,M / 1 byte / 7 cylces / moves the value in memory referenced by HL into the L reg
     case 0x6E:
       regs->l = memory[regs->hl];
+      cycles += 7;
       break;
     // MOV L,A / 1 byte / 5 cycles / moves A into L
     case 0x6F:
       regs->l = regs->a;
+      cycles += 5;
       break;
 
 
@@ -483,26 +882,32 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV M,B / 1 byte / 7 cycles /  moves contents in B into memory location reference by HL
     case 0x70:
       memory[regs->hl] = regs->b;
+      cycles += 7;
       break;
     // MOV M,C / 1 byte / 7 cycles /  moves contents in C into memory location reference by HL
     case 0x71:
       memory[regs->hl] = regs->c;
+      cycles += 7;
       break;
     // MOV M,D / 1 byte / 7 cycles /  moves contents in D into memory location reference by HL
     case 0x72:
       memory[regs->hl] = regs->d;
+      cycles += 7;
       break;
     // MOV M,E / 1 byte / 7 cycles /  moves contents in E into memory location reference by HL
     case 0x73:
       memory[regs->hl] = regs->e;
+      cycles += 7;
       break;
     // MOV M,H / 1 byte / 7 cycles /  moves contents in H into memory location reference by HL
     case 0x74:
       memory[regs->hl] = regs->h;
+      cycles += 7;
       break;
     // MOV M,L / 1 byte / 7 cycles /  moves contents in L into memory location reference by HL
     case 0x75:
       memory[regs->hl] = regs->l;
+      cycles += 7;
       break;
     // HLT / 1 byte / 7 cycles / 
     case 0x76:
@@ -560,16 +965,12 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC0:
       printf("checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location. \n");
       break;
-    
     // JMP a16  / 3 bytes / 10 cycles / - - - - - / uncondition jump to the mem address given by next 2 bytes in memory  
     case 0xC3: {
-      u16 mem_location = (fetch_byte() << 8) | fetch_byte();
-      regs->pc = mem_location;
+      u16 mem_loc = fetch_bytes();
+      regs->pc = mem_loc;
       cycles += 10;
     }
-
-
-
 
 
     // D0 - DF ///////////////////////////////////////////////////////////////
@@ -699,11 +1100,10 @@ int _8080::check_parity_flag(u16 num) {
     count += num & 0x1;
     num >>= 1;
   }
-
   return (count % 2 == 0) ? 1 : 0;
 }
 
-int check_carry_flag(u8 num, u8 num2, Operation operation) {
+int _8080::check_carry_flag(u8 num, u8 num2, Operation operation) {
   int carry = 0;
 
   switch (operation) {
@@ -711,14 +1111,17 @@ int check_carry_flag(u8 num, u8 num2, Operation operation) {
       carry = (num + num2) > 0xFF ? 1 : 0;
       break;
     case SUBTRACT:
-      carry = (num >= num2) ? 1 : 0;
+      carry = (num < num2) ? 1 : 0;
+      break;
+    case RLC:
+      carry = (num & 0x80) >> 7;
       break;
   }
 
   return carry;
 }
 
-int check_carry_flag(u16 num, u16 num2, Operation operation) {
+int _8080::check_carry_flag(u16 num, u16 num2, Operation operation) {
   int carry = 0;
 
   switch (operation) {
