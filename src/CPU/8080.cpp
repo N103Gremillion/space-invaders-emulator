@@ -933,9 +933,85 @@ void _8080::execute_instruction(u8 opcode) {
 
 
     // 80 - 8F ///////////////////////////////////////////////////////
-    // ADD B / adds contents of B into A
+    // ADD B / 1 byte / 4  cycles/ S Z AC P CA / adds contents of B into A
     case 0x80:
-      printf("A = A + B \n");
+      add_register(&(regs->a), regs->b, &(regs->f));
+      cycles += 4;
+      break;
+    // ADD C / 1 byte / 4  cycles/ S Z AC P CA / adds contents of C into A
+    case 0x81:
+      add_register(&(regs->a), regs->c, &(regs->f));
+      cycles += 4;
+      break;
+    // ADD D / 1 byte / 4  cycles/ S Z AC P CA / adds contents of D into A
+    case 0x82:
+      add_register(&(regs->a), regs->d, &(regs->f));
+      cycles += 4;
+      break;
+    // ADD E / 1 byte / 4  cycles/ S Z AC P CA / adds contents of E into A
+    case 0x83:
+      add_register(&(regs->a), regs->e, &(regs->f));;
+      cycles += 4;
+      break;
+    // ADD H / 1 byte / 4  cycles/ S Z AC P CA / adds contents of H into A
+    case 0x84:
+      add_register(&(regs->a), regs->h, &(regs->f));
+      cycles += 4;
+      break;
+    // ADD L / 1 byte / 4  cycles/ S Z AC P CA / adds contents of L into A
+    case 0x85:
+      add_register(&(regs->a), regs->l, &(regs->f));
+      cycles += 4;
+      break;
+    // ADD M / 1 byte / 7 cycles/ S Z AC P CA / adds contents in memory[hl] into A
+    case 0x86:
+      add_register(&(regs->a), memory[regs->hl], &(regs->f));
+      cycles += 7;
+      break;
+    // ADD A / 1 byte / 4 cycles/ S Z AC P CA / adds A into A
+    case 0x87:
+      add_register(&(regs->a), regs->a, &(regs->f));
+      cycles += 4;
+      break;
+    // ADC B / 1 byte / 4 cycles / S Z AC P CA / B and carry are added and stored in A
+    case 0x88:
+      add_register(&(regs->a), (regs->b + (regs->ca ? 1 : 0)), &(regs->f));
+      cycles += 4;
+      break;
+    // ADC C / 1 byte / 4 cycles / S Z AC P CA / C and carry are added and stored in A
+    case 0x89:
+      add_register(&(regs->a), (regs->c + (regs->ca ? 1 : 0)), &(regs->f));
+      cycles += 4;
+      break;
+    // ADC D / 1 byte / 4 cycles / S Z AC P CA / D and carry are added and stored in A
+    case 0x8A:
+      add_register(&(regs->a), (regs->d + (regs->ca ? 1 : 0)), &(regs->f));
+      cycles += 4;
+      break;
+    // ADC E / 1 byte / 4 cycles / S Z AC P CA / E and carry are added and stored in A
+    case 0x8B:
+      add_register(&(regs->a), (regs->e + (regs->ca ? 1 : 0)), &(regs->f));
+      cycles += 4;
+      break;
+    // ADC H / 1 byte / 4 cycles / S Z AC P CA / H and carry are added and stored in A
+    case 0x8C:
+      add_register(&(regs->a), (regs->h + (regs->ca ? 1 : 0)), &(regs->f));
+      cycles += 4;
+      break;
+    // ADC L / 1 byte / 4 cycles / S Z AC P CA / L and carry are added and stored in A
+    case 0x8D:
+      add_register(&(regs->a), (regs->l + (regs->ca ? 1 : 0)), &(regs->f));
+      cycles += 4;
+      break;
+    // ADC M / 1 byte / 7 cycles / S Z AC P CA / memory[HL] and carry are added and stored in A
+    case 0x8E:
+      add_register(&(regs->a), (memory[regs->hl] + (regs->ca ? 1 : 0)), &(regs->f));
+      cycles += 7;
+      break;
+    // ADC A / 1 byte / 4 cycles / S Z AC P CA / A and carry are added and stored in A
+    case 0x8F:
+      add_register(&(regs->a), (regs->a + (regs->ca ? 1 : 0)), &(regs->f));
+      cycles += 4;
       break;
 
 
@@ -1053,6 +1129,17 @@ void _8080::execute_instruction(u8 opcode) {
       printf(" ");
       break;
   }
+}
+
+// note: the a is the reg that the result is stored in
+void _8080::add_register(u8* a, u8 val, u8* flags) {
+  u8 res = *(a) + val;
+  *flags |= (check_carry_flag(*(a), val, ADD) << 0); // carry
+  *flags |= (check_auxilary_flag(*(a), val, ADD) << 4); // aux flag
+  *flags |= (check_sign_flag(res) << 7);
+  *flags |= (check_zero_flag(res) << 6);
+  *flags |= (check_parity_flag(res) << 2);
+  *a = res;
 }
 
 int _8080::check_sign_flag(u8 num) {
