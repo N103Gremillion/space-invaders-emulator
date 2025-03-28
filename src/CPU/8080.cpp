@@ -1018,6 +1018,8 @@ void _8080::execute_instruction(u8 opcode) {
     // 90 - 9F ////////////////////////////////////////////////////////
     // SUB B / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of B from A and store in A
     case 0x90:
+      subtract_register(&(regs->a), regs->b, &(regs->f));
+      cycles +=4;
       break;
     // SUB C / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of C from A and store in A
     case 0x91:
@@ -1178,11 +1180,21 @@ void _8080::execute_instruction(u8 opcode) {
 // note: the a is the reg that the result is stored in
 void _8080::add_register(u8* a, u8 val, u8* flags) {
   u8 res = *(a) + val;
-  *flags |= (check_carry_flag(*(a), val, ADD) << 0); // carry
-  *flags |= (check_auxilary_flag(*(a), val, ADD) << 4); // aux flag
-  *flags |= (check_sign_flag(res) << 7);
-  *flags |= (check_zero_flag(res) << 6);
-  *flags |= (check_parity_flag(res) << 2);
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, ADD) << 0); // carry
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, ADD) << 4); // aux flag
+  *flags = (*flags & 0x7F) | (check_sign_flag(res) << 7); // sign flag
+  *flags = (*flags & 0xBF) | (check_zero_flag(res) << 6); // zero flag
+  *flags = (*flags & 0xFB) | (check_parity_flag(res) << 2); // parity flag
+  *a = res;
+}
+
+void _8080::subtract_register(u8* a, u8 val, u8* flags) {
+  u8 res = *(a) - val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, SUBTRACT) << 0); // carry
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, SUBTRACT) << 4); // aux flag
+  *flags = (*flags & 0x7F) | (check_sign_flag(res) << 7); // sign flag
+  *flags = (*flags & 0xBF) | (check_zero_flag(res) << 6); // zero flag
+  *flags = (*flags & 0xFB) | (check_parity_flag(res) << 2); // parity flag
   *a = res;
 }
 

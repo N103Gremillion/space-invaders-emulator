@@ -49,7 +49,8 @@ class _8080 {
         u8 fetch_byte(); // fetch bytes
         u16 fetch_bytes(); // fetch next 2 bytes
         void execute_instruction(u8 opcode);
-        void add_register(u8* a, u8 val, u8* f_reg); // f_reg (flags reg)
+        void add_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
+        void subtract_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being subtracted from a) f_reg (flags reg)
 
     public:
         Registers* regs;
