@@ -1016,9 +1016,53 @@ void _8080::execute_instruction(u8 opcode) {
 
 
     // 90 - 9F ////////////////////////////////////////////////////////
-    // SUB B / subtracts the contents of B from A
+    // SUB B / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of B from A and store in A
     case 0x90:
-      printf("A = A - B \n");
+      break;
+    // SUB C / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of C from A and store in A
+    case 0x91:
+      break;
+    // SUB D / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of D from A and store in A
+    case 0x92:
+      break;
+    // SUB E / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of E from A and store in A
+    case 0x93:
+      break;
+    // SUB H / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of H from A and store in A
+    case 0x94:
+      break;
+    // SUB L / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of L from A and store in A
+    case 0x95:
+      break;
+    // SUB M / 1 byte / 7 cycles / S Z AC P CA / subtracts memory[HL] from A and store in A
+    case 0x96:
+      break;
+    // SUB A / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of A from A and store in A
+    case 0x97:
+      break;
+    // SBB B / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of B and CA from A and store in A
+    case 0x98:
+      break;
+    // SBB C / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of C and CA from A and store in A
+    case 0x99:
+      break;
+    // SBB D / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of D and CA from A and store in A
+    case 0x9A:
+      break;
+    // SBB E / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of E and CA from A and store in A
+    case 0x9B:
+      break;
+    // SBB H / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of H and CA from A and store in A
+    case 0x9C:
+      break;
+    // SBB L / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of L and CA from A and store in A
+    case 0x9D:
+      break;
+    // SBB M / 1 byte / 7 cycles / S Z AC P CA / subtracts memory[HL] and CA from A and store in A
+    case 0x9E:
+      break;
+    // SBB A / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of A and CA from A and store in A
+    case 0x9F:
       break;
      
 
