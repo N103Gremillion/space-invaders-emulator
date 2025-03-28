@@ -1023,48 +1023,78 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     // SUB C / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of C from A and store in A
     case 0x91:
+      subtract_register(&(regs->a), regs->c, &(regs->f));
+      cycles +=4;
       break;
     // SUB D / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of D from A and store in A
     case 0x92:
+      subtract_register(&(regs->a), regs->d, &(regs->f));
+      cycles +=4;
       break;
     // SUB E / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of E from A and store in A
     case 0x93:
+      subtract_register(&(regs->a), regs->e, &(regs->f));
+      cycles +=4;
       break;
     // SUB H / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of H from A and store in A
     case 0x94:
+      subtract_register(&(regs->h), regs->c, &(regs->f));
+      cycles +=4;
       break;
     // SUB L / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of L from A and store in A
     case 0x95:
+      subtract_register(&(regs->a), regs->l, &(regs->f));
+      cycles +=4;
       break;
     // SUB M / 1 byte / 7 cycles / S Z AC P CA / subtracts memory[HL] from A and store in A
     case 0x96:
+      subtract_register(&(regs->a), memory[regs->hl], &(regs->f));
+      cycles +=7;
       break;
     // SUB A / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of A from A and store in A
     case 0x97:
+      subtract_register(&(regs->a), regs->a, &(regs->f));
+      cycles +=4;
       break;
     // SBB B / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of B and CA from A and store in A
     case 0x98:
+      subtract_register(&(regs->a), (regs->b - (regs->ca ? 1 : 0)), &(regs->f));
+      cycles +=4;
       break;
     // SBB C / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of C and CA from A and store in A
     case 0x99:
+      subtract_register(&(regs->a), (regs->c - (regs->ca ? 1 : 0)), &(regs->f));
+      cycles +=4;
       break;
     // SBB D / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of D and CA from A and store in A
     case 0x9A:
+      subtract_register(&(regs->a), (regs->d - (regs->ca ? 1 : 0)), &(regs->f));
+      cycles +=4;
       break;
     // SBB E / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of E and CA from A and store in A
     case 0x9B:
+      subtract_register(&(regs->a), (regs->e - (regs->ca ? 1 : 0)), &(regs->f));
+      cycles +=4;
       break;
     // SBB H / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of H and CA from A and store in A
     case 0x9C:
+      subtract_register(&(regs->a), (regs->h - (regs->ca ? 1 : 0)), &(regs->f));
+      cycles +=4;
       break;
     // SBB L / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of L and CA from A and store in A
     case 0x9D:
+      subtract_register(&(regs->a), (regs->l - (regs->ca ? 1 : 0)), &(regs->f));
+      cycles +=4;
       break;
     // SBB M / 1 byte / 7 cycles / S Z AC P CA / subtracts memory[HL] and CA from A and store in A
     case 0x9E:
+      subtract_register(&(regs->a), (memory[regs->hl] - (regs->ca ? 1 : 0)), &(regs->f));
+      cycles +=7;
       break;
     // SBB A / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of A and CA from A and store in A
     case 0x9F:
+      subtract_register(&(regs->a), (regs->a - (regs->ca ? 1 : 0)), &(regs->f));
+      cycles +=4;
       break;
      
 
