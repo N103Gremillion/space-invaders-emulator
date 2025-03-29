@@ -886,11 +886,21 @@ void _8080::execute_instruction(u8 opcode) {
       cycles += 4;
       break;
     // XRA (XOR) B / 1 byte / 4 cycles / S Z AC P CA / XOR the A and specified byte and store in A
-    case 0XA8:
-      bitwise_XOR_register(&(regs->a), regs->b, &(regs->f));
-      cycles += 4;
-      break;  
-
+    case 0XA8: { bitwise_XOR_register(&(regs->a), regs->b, &(regs->f)); cycles += 4; break; }
+    // XRA (XOR) C / 1 byte / 4 cycles / S Z AC P CA / XOR the A and specified byte and store in A
+    case 0XA9: { bitwise_XOR_register(&(regs->a), regs->c, &(regs->f)); cycles += 4; break; }  
+    // XRA (XOR) D / 1 byte / 4 cycles / S Z AC P CA / XOR the A and specified byte and store in A
+    case 0XAA: { bitwise_XOR_register(&(regs->a), regs->d, &(regs->f)); cycles += 4; break; } 
+    // XRA (XOR) E / 1 byte / 4 cycles / S Z AC P CA / XOR the A and specified byte and store in A
+    case 0XAB: { bitwise_XOR_register(&(regs->a), regs->e, &(regs->f)); cycles += 4; break; } 
+    // XRA (XOR) H / 1 byte / 4 cycles / S Z AC P CA / XOR the A and specified byte and store in A
+    case 0XAC: { bitwise_XOR_register(&(regs->a), regs->h, &(regs->f)); cycles += 4; break; } 
+    // XRA (XOR) L / 1 byte / 4 cycles / S Z AC P CA / XOR the A and specified byte and store in A
+    case 0XAD: { bitwise_XOR_register(&(regs->a), regs->l, &(regs->f)); cycles += 4; break; } 
+    // XRA (XOR) M / 1 byte / 7 cycles / S Z AC P CA / XOR the A and specified byte and store in A
+    case 0XAE: { bitwise_XOR_register(&(regs->a), memory[regs->hl], &(regs->f)); cycles += 7; break; } 
+    // XRA (XOR) C / 1 byte / 4 cycles / S Z AC P CA / XOR the A and specified byte and store in A
+    case 0XAF: { bitwise_XOR_register(&(regs->a), regs->a, &(regs->f)); cycles += 4; break; } 
 
     // B0 - BF /////////////////////////////////////////////////////////
     // ORA B / bitwize or | between A and B and stored in A
@@ -1053,6 +1063,8 @@ void _8080::bitwise_AND_register(u8* a, u8 val, u8* flags) {
 
 void _8080::bitwise_XOR_register(u8* a, u8 val, u8* flags) {
   u8 res = *(a) ^ val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, XOR) << CARRY_POS); // carry
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
   *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
@@ -1106,6 +1118,9 @@ int _8080::check_carry_flag(u8 num, u8 num2, Operation operation) {
       carry = (num & 0x80) >> 7;
       break;
     case AND:
+      carry = 0;
+      break;
+    case XOR:
       carry = 0;
       break;
   }
