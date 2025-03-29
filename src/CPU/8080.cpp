@@ -163,10 +163,11 @@ void _8080::run() {
 
     // for debugging
     cout << "Press any key to continue...";
-    cin.get();// u16 low = fetch_byte();
-      // u16 high = fetch_byte();
-      // cout << hex << ((high << 8) | low) << endl;
-     // SDL_Delay(1000);
+    cin.get();
+    // u16 low = fetch_byte();
+    // u16 high = fetch_byte();
+    // cout << hex << ((high << 8) | low) << endl;
+    // SDL_Delay(1000);
   }
 }
 
@@ -193,98 +194,40 @@ void _8080::execute_instruction(u8 opcode) {
   switch (opcode) {
     // 00 - 0F
     // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
-    case 0x00:
-      cycles += 4;
-      break;
+    case 0x00: {cycles += 4; break; }
     // LXI B, d16 / 3 byte / 10 cycles / - - - - - / load preciding 16 bits into register BC
-    case 0x01: {
-      u16 bytes = fetch_bytes();    
-      regs->bc = bytes;
-      cycles += 10;
-      break;
-    }
+    case 0x01: { LXI_register(&(regs->bc)); cycles += 10; break; }
     // STAX (store accumulator inderectly) B / 1 byte / 7 cycles / - - - - - /  store value of A reg into memory location pointed to by BC reg_pair
-    case 0x02:
-      memory[regs->bc] = regs->a;
-      cycles += 7;
-      break;
+    case 0x02: { memory[regs->bc] = regs->a; cycles += 7; break; }
     // INX B / 1 byte / 5 cycles / - - - - - / (increment reg pair) / increment BC reg pair by 1
-    case 0x03:
-      regs->bc++;
-      cycles += 5;
-      break;
+    case 0x03: { regs->bc++; cycles += 5; break; }
     // INR B / 1 byte / 5 cycles / S Z AC P - /  (incrment reg) / increment B reg by 1
-    case 0x04:
-      regs->ac = check_auxilary_flag(regs->b, 1, ADD);
-      regs->b++;
-      regs->s = check_sign_flag(regs->b);
-      regs->z = check_zero_flag(regs->b);
-      regs->p = check_parity_flag(regs->b);
-      cycles += 5;
-      break;
+    case 0x04: { increment_register(&(regs->b), &(regs->f)); cycles += 5; break; }
     // DCR B / 1 byte / 5 cycles / S Z AC P - / (decrement reg) / decrement B reg by 1
-    case 0x05:
-      regs->ac = check_auxilary_flag(regs->b, 1, SUBTRACT);
-      regs->b--;
-      regs->s = check_sign_flag(regs->b);
-      regs->z = check_zero_flag(regs->b);
-      regs->p = check_parity_flag(regs->b);
-      cycles += 5;
-      break;
+    case 0x05: { decrement_register(&(regs->b), &(regs->f)); cycles += 5; break; }
     // MVI B, d8 (move immediate) / 2 byte / 7 cycle / - - - - - / move d8 value into B reg
-    case 0x06:
-      regs->b = fetch_byte();
-      cycles += 7;
-      break;
+    case 0x06: { regs->b = fetch_byte(); cycles += 7; break; }
     // RLC / 1 byte / 4 cycles / - - - - C / (Rotate left through carry) / shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value
-    case 0x07:
-      regs->ca = check_carry_flag(regs->a, 0, RLC);
+    case 0x07: { 
+      regs->ca = check_carry_flag(regs->a, 0, RLC); 
       regs->a = (regs->a << 1) | regs->ca; 
-      cycles += 4;
-      break;
+      cycles += 4; 
+      break; 
+    }
     // NOP / 1 byte / 4 cycles / nothing
-    case 0x08:
-      cycles += 4;
-      break;
+    case 0x08: { cycles += 4; break; }
     // DAD B / 1 byte / 10 cycles / - - - - CA / (double add) / add value in BC reg pair to HL reg pair (modifies the carry flag if there is overflow)
-    case 0x09:
-      regs->ca = check_carry_flag(regs->hl, regs->bc, ADD);
-      regs->hl = regs->hl + regs->bc;
-      cycles += 10;
-      break;
+    case 0x09: { DAD_register(&(regs->hl), regs->bc, &(regs->f)); cycles += 10; break; }
     // LDAX B / 1 byte / 7 cycles / (load accumulator from mem) / load memory address pointed to by BC (memory[BC]) into A reg 
-    case 0x0A:
-      regs->a = memory[regs->bc];
-      cycles += 7;
-      break;
+    case 0x0A: { regs->a = memory[regs->bc]; cycles += 7; break; }
     // DCX B / 1 byte / 5 cyles / - - - - - / decrement BC
-    case 0x0B:
-      regs->bc--;
-      cycles += 5;
-      break;
+    case 0x0B: { regs->bc--; cycles += 5; break; }
     // INC C / 1 byte / 5 cycles / S Z A P - / incremtent c by 1 
-    case 0x0C:
-      regs->ac = check_auxilary_flag(regs->c, 1, ADD);
-      regs->c++;
-      regs->s = check_sign_flag(regs->c);
-      regs->z = check_zero_flag(regs->c);
-      regs->p = check_parity_flag(regs->c);
-      cycles += 5;
-      break;
+    case 0x0C: { increment_register(&(regs->c), &(regs->f)); cycles += 5; break; }
     // DCR C / 1 byte / 5 cycles / S Z AC P - / decrement c by 1
-    case 0x0D:
-      regs->ac = check_auxilary_flag(regs->c, 1, SUBTRACT);
-      regs->c--;
-      regs->s = check_sign_flag(regs->c);
-      regs->z = check_zero_flag(regs->c);
-      regs->p = check_parity_flag(regs->c);
-      cycles += 5;
-      break;
+    case 0x0D: { decrement_register(&(regs->c), &(regs->f)); cycles += 5; break; }
     // MVI, C, d8 / 2 bytes / 7 cycles / - - - - - / move next byte into C reg
-    case 0x0E:
-      regs->c = fetch_byte();
-      cycles += 7;
-      break;
+    case 0x0E: { regs->c = fetch_byte(); cycles += 7; break; }
     // RRC / 1 byte / 4 cycles / - - - - CA / rotate accumulator right
     case 0x0F: {
       int low_bit = (regs->a & 0x01);
@@ -298,163 +241,64 @@ void _8080::execute_instruction(u8 opcode) {
 
     // 10 - 1F ///////////////////////////////////////////////////
     // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
-    case 0x10:
-      cycles += 4;
-      break;
+    case 0x10: {cycles += 4; break;}
     // LXI D, d16 / 3 bytes / 10 cycles / - - - - - / load the next 2 bytes in memory into reg-pair DE
-    case 0x11: {
-      u16 bytes = fetch_bytes();
-      regs->de = bytes;
-      cycles += 10;
-      break;
-    }
+    case 0x11: { LXI_register(&(regs->de)); cycles += 10; break;}
     // STAX D / 1 byte / 7 cycles / - - - - - / contents of A are stroed in memory reference by the location in DE reg-pair
-    case 0x12:
-      memory[regs->de] = regs->a;
-      cycles += 7;
-      break;
+    case 0x12: {memory[regs->de] = regs->a; cycles += 7; break; }
     // INX D / 1 byte / 5 cycles / - - - - - / DE ++
-    case 0x13:
-      regs->de++;
-      cycles += 5;
-      break;
+    case 0x13: {regs->de++; cycles += 5; break;}
     // INR D / 1 byte / 5 cycles / S Z AC P - /  (incrment reg) / increment D reg by 1
-    case 0x14:
-      regs->ac = check_auxilary_flag(regs->d, 1, ADD);
-      regs->d++;
-      regs->s = check_sign_flag(regs->d);
-      regs->z = check_zero_flag(regs->d);
-      regs->p = check_parity_flag(regs->d);
-      cycles += 5;
-      break;
+    case 0x14: {increment_register(&(regs->d), &(regs->f)); cycles += 5; break;};
     // DCR D / 1 byte / 5 cycles / S Z AC P - / (decrement reg) / decrement D reg by 1
-    case 0x15:
-      regs->ac = check_auxilary_flag(regs->d, 1, SUBTRACT);
-      regs->d--;
-      regs->s = check_sign_flag(regs->d);
-      regs->z = check_zero_flag(regs->d);
-      regs->p = check_parity_flag(regs->d);
-      cycles += 5;
-      break;
+    case 0x15: { decrement_register(&(regs->d), &(regs->f)); cycles += 5; break; };
     // MVI D, d8 (move immediate) / 2 byte / 7 cycle / - - - - - / move d8 value into D reg
-    case 0x16:
-      regs->d = fetch_byte();
-      cycles += 7;
-      break;
+    case 0x16: { regs->d = fetch_byte(); cycles += 7; break; }
     // RAL / 1 byte / 4 cycles / - - - - C / A is rotated << 1 and the high bit replaces the carry bit while carry replaces the high bit
-    case 0x17: {
-      int cur_carry = regs->ca;
-      regs->ca = (regs->a & 0x80) >> 7;
-      regs->a = (regs->a << 1) | cur_carry;
-      cycles += 4;
-      break;
+    case 0x17: { 
+      int cur_carry = regs->ca; 
+      regs->ca = (regs->a & 0x80) >> 7; 
+      regs->a = (regs->a << 1) | cur_carry; 
+      cycles += 4; 
+      break; 
     }
     // NOP / 1 byte / 4 cycles / nothing
-    case 0x18:
-      cycles += 4;
-      break;
+    case 0x18: { cycles += 4; break; }
     // DAD D / 1 byte / 10 cycles / - - - - CA / (double add) / add value in DE reg pair to HL reg pair (modifies the carry flag if there is overflow)
-    case 0x19:
-      regs->ca = check_carry_flag(regs->hl, regs->de, ADD);
-      regs->hl = regs->hl + regs->de;
-      cycles += 10;
-      break;
+    case 0x19: { DAD_register(&(regs->hl), regs->de, &(regs->f)); cycles += 10; break; }
     // LDAX D / 1 byte / 7 cycles / (load accumulator from mem) / load memory address pointed to by DE (memory[DE]) into A reg 
-    case 0x1A:
-      regs->a = memory[regs->de];
-      cycles += 7;
-      break;
+    case 0x1A: { regs->a = memory[regs->de]; cycles += 7; break; }
     // DCX D / 1 byte / 5 cyles / - - - - - / decrement DE
-    case 0x1B:
-      regs->de--;
-      cycles += 5;
-      break;
+    case 0x1B: { regs->de--; cycles += 5; break; }
     // INC E / 1 byte / 5 cycles / S Z A P - / incremtent e by 1 
-    case 0x1C:
-      regs->ac = check_auxilary_flag(regs->e, 1, ADD);
-      regs->e++;
-      regs->s = check_sign_flag(regs->e);
-      regs->z = check_zero_flag(regs->e);
-      regs->p = check_parity_flag(regs->e);
-      cycles += 5;
-      break;
+    case 0x1C: { increment_register(&(regs->e), &(regs->f)); cycles += 5; break; }
     // DCR E / 1 byte / 5 cycles / S Z AC P - / decrement e by 1
-    case 0x1D:
-      regs->ac = check_auxilary_flag(regs->e, 1, SUBTRACT);
-      regs->e--;
-      regs->s = check_sign_flag(regs->e);
-      regs->z = check_zero_flag(regs->e);
-      regs->p = check_parity_flag(regs->e);
-      cycles += 5;
-      break;
+    case 0x1D: { decrement_register(&(regs->e), &(regs->f)); cycles += 5; break; }
     // MVI, E, d8 / 2 bytes / 7 cycles / - - - - - / move next byte into E reg
-    case 0x1E:
-      regs->e = fetch_byte();
-      cycles += 7;
-      break;
+    case 0x1E: { regs->e = fetch_byte(); cycles += 7; break; }
     // RAR / 1 byte / 4 cycles / - - - - CA / rotate accumulator right
     case 0x1F: {
       int prev_carry = regs->ca;
       regs->ca = (regs->a & 0x01);
       regs->a = (regs->a >> 1);
-      regs->a = (regs->a | (prev_carry << 7));
-      cycles += 4;
-      break;
     }
 
-    // 20 - 2F /////////////////////////////////////////////////////
-    // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
-    case 0x20:
-      cycles += 4;
-      break;
-    // LXI H, d16 / 3 bytes / 10 cycles / - - - - - / HL = (next 2 bytes)
-    case 0x21: {
-      u16 bytes  = fetch_bytes();
-      regs->hl = bytes;
-      cycles += 10;
-      break;
-    }
+    case 0x21: { LXI_register(&(regs->hl)); cycles += 10; break; }
     // SHLD a16 / 3 bytes / 16 cycles / - - - - - /  memory location referenced by next 2 bytes is set to L and the next memory location after is set to H
-    case 0x22: {
-      u16 address = fetch_bytes();
-      memory[address] = regs->l;
-      memory[address + 1] = regs->h;
-      cycles += 16;
-      break;
-    }
+    case 0x22: { u16 address = fetch_bytes(); memory[address] = regs->l; memory[address + 1] = regs->h; cycles += 16; break; }
     // INX H / 1 byte / 5 cycles / - - - - - / HL ++
-    case 0x23:
-      regs->hl++;
-      cycles += 5;
-      break;
+    case 0x23: { regs->hl++; cycles += 5; break; }
     // INR H / 1 byte / 5 cycles / S Z AC P - /  (incrment reg) / increment H reg by 1
-    case 0x24:
-      regs->ac = check_auxilary_flag(regs->h, 1, ADD);
-      regs->h++;
-      regs->s = check_sign_flag(regs->h);
-      regs->z = check_zero_flag(regs->h);
-      regs->p = check_parity_flag(regs->h);
-      cycles += 5;
-      break;
+    case 0x24: {increment_register(&(regs->h), &(regs->f)); cycles += 5; break;};
     // DCR H / 1 byte / 5 cycles / S Z AC P - / (decrement reg) / decrement H reg by 1
-    case 0x25:
-      regs->ac = check_auxilary_flag(regs->h, 1, SUBTRACT);
-      regs->h--;
-      regs->s = check_sign_flag(regs->h);
-      regs->z = check_zero_flag(regs->h);
-      regs->p = check_parity_flag(regs->h);
-      cycles += 5;
-      break;
+    case 0x25: { decrement_register(&(regs->h), &(regs->f)); cycles += 5; break; }
     // MVI H, d8 (move immediate) / 2 byte / 7 cycle / - - - - - / move d8 value into H reg
-    case 0x26:
-      regs->h = fetch_byte();
-      cycles += 7;
-      break;
+    case 0x26: { regs->h = fetch_byte(); cycles += 7; break; }
     // DAA / 1 byte / 4 cycle / S Z AC P CA / (decimal adjust accumulator) 
     case 0x27: {
       u8 ls_4bits = (regs->a & 0x0F);
       if ((ls_4bits > 9) || (regs->ac == 1)) {
-        regs->ac = check_auxilary_flag(regs->a, 6, ADD);
+        regs->ac = check_auxilary_flag(regs->a, (regs->a + 6));
         regs->a += 6;
       }
       u8 ms_4bits = (regs->a >> 4);
@@ -469,15 +313,9 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     }
     // NOP / 1 byte / 4 cycles / nothing
-    case 0x28:
-      cycles += 4;
-      break;
+    case 0x28: { cycles += 4; break; }
     // DAD H / 1 byte / 10 cycles / - - - - CA / (double add) / add value in HL reg pair to HL reg pair (modifies the carry flag if there is overflow)
-    case 0x29:
-      regs->ca = check_carry_flag(regs->hl, regs->hl, ADD);
-      regs->hl = regs->hl + regs->hl;
-      cycles += 10;
-      break;
+    case 0x29: { DAD_register(&(regs->hl), regs->hl, &(regs->f)); cycles += 10; break; }
     // LHLD a16, / 3 byte / 16 cycles / takes 16 bit address and loads content of memory into HL
     case 0x2A: {
       u16 address = fetch_bytes();
@@ -487,33 +325,13 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     }
     // DCX H / 1 byte / 5 cyles / - - - - - / decrement HL
-    case 0x2B:
-      regs->hl--;
-      cycles += 5;
-      break;
+    case 0x2B: { regs->hl--; cycles += 5; break; }
     // INC L / 1 byte / 5 cycles / S Z A P - / incremtent L by 1 
-    case 0x2C:
-      regs->ac = check_auxilary_flag(regs->l, 1, ADD);
-      regs->l++;
-      regs->s = check_sign_flag(regs->l);
-      regs->z = check_zero_flag(regs->l);
-      regs->p = check_parity_flag(regs->l);
-      cycles += 5;
-      break;
+    case 0x2C: { increment_register(&(regs->l), &(regs->f)); cycles += 5; break; }
     // DCR L / 1 byte / 5 cycles / S Z AC P - / decrement l by 1
-    case 0x2D:
-      regs->ac = check_auxilary_flag(regs->l, 1, SUBTRACT);
-      regs->l--;
-      regs->s = check_sign_flag(regs->l);
-      regs->z = check_zero_flag(regs->l);
-      regs->p = check_parity_flag(regs->l);
-      cycles += 5;
-      break;
+    case 0x2D: { decrement_register(&(regs->l), &(regs->f)); cycles += 5; break; }
     // MVI, L, d8 / 2 bytes / 7 cycles / - - - - - / move next byte into l reg
-    case 0x2E:
-      regs->l = fetch_byte();
-      cycles += 7;
-      break;
+    case 0x2E: { regs->l = fetch_byte(); cycles += 7; break; }
     // CMA / 1 byte / 4 cycles / - - - - - / complement accumulator
     case 0x2F:
       regs->a = ~regs->a;
@@ -522,105 +340,35 @@ void _8080::execute_instruction(u8 opcode) {
 
     // 30 - 3F ////////////////////////////////////////////////////
     // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
-    case 0x30:
-      cycles += 4;
-      break;
+    case 0x30:{cycles += 4; break; }
     // LXI SP, d16 / 3 bytes / 10 cycles / - - - - - / SP = (next 2 bytes)
-    case 0x31: {
-      u16 bytes = fetch_bytes();
-      regs->sp = bytes;
-      cycles += 10;
-      break;
-    }
+    case 0x31: { LXI_register(&(regs->sp)); cycles += 10;break;}
     // STA, a16 / 3 bytes / 13 cycles / - - - - - / memory location referenced by next 2 bytes is set to the A reg
-    case 0x32: {
-      u16 address = fetch_bytes();
-      memory[address] = regs->a;
-      cycles += 13;
-      break;
-    }
+    case 0x32: { u16 address = fetch_bytes(); memory[address] = regs->a; cycles += 13; break; }
     // INX SP / 1 byte / 5 cycles / - - - - - / SP ++
-    case 0x33:
-      regs->sp++;
-      cycles += 5;
-      break;
+    case 0x33: { regs->sp++; cycles += 5; break; }
     // INR M / 1 byte / 10 cycles / S Z AC P - / increment value stored in memory loaction referenced by HL reg_pair
-    case 0x34: {
-      u8 val = memory[regs->hl];
-      regs->ac = check_auxilary_flag(val, 1, ADD);
-      val++;
-      memory[regs->hl] = val;
-      regs->s = check_sign_flag(val);
-      regs->z = check_zero_flag(val);
-      regs->p = check_parity_flag(val);
-      cycles += 10;
-      break;
-    }
+    case 0x34: {increment_register(&(memory[regs->hl]), &(regs->f)); cycles += 10; break;}
     // DCR M / 1 byte / 10 cycles / S Z AC P - / decrement value stored in memory loaction referenced by HL reg_pair
-    case 0x35: {
-      u8 val = memory[regs->hl];    
-      regs->ac = check_auxilary_flag(val, 1, SUBTRACT);
-      val--;
-      memory[regs->hl] = val;
-      regs->s = check_sign_flag(val);
-      regs->z = check_zero_flag(val);
-      regs->p = check_parity_flag(val);
-      cycles += 10;
-      break;
-    }
+    case 0x35: { decrement_register(&(memory[regs->hl]), &(regs->f)); cycles += 10; break; }
     // MVI M, d8 (move immediate) / 2 byte / 10 cycle / - - - - - / move d8 value into memory with reference in HL
-    case 0x36:
-      memory[regs->hl] = fetch_byte();
-      cycles += 10;
-      break;
+    case 0x36: { memory[regs->hl] = fetch_byte(); cycles += 10; break; }
     // STC / 1 byte / 4 cycle / - - - - CA / carry bit set to 1
-    case 0x37:
-      regs->ca = 1;
-      cycles += 4;
-      break;
+    case 0x37: { regs->ca = 1; cycles += 4; break; }
     // NOP / 1 byte / 4 cycles / nothing
-    case 0x38:
-      cycles += 4;
-      break;
+    case 0x38: { cycles += 4; break; }
     // DAD SP / 1 byte / 10 cycles / - - - - CA / (double add) / add value in SP reg pair to HL reg pair (modifies the carry flag if there is overflow)
-    case 0x39:
-      regs->ca = check_carry_flag(regs->hl, regs->sp, ADD);
-      regs->hl = regs->hl + regs->sp;
-      cycles += 10;
-      break; 
+    case 0x39: { DAD_register(&(regs->hl), regs->sp, &(regs->f)); cycles += 10; break; }
     // LDA a16 / 3 bytes / 13 cycles / - - - - - / load the byte in memory loaction refered to by next 2 bytes into a reg
-    case 0x3A:
-      regs->a = memory[fetch_bytes()];
-      cycles += 13;
-      break;
+    case 0x3A: { regs->a = memory[fetch_bytes()]; cycles += 13; break; }
     // DCX SP / 1 byte / 5 cyles / - - - - - / decrement SP
-    case 0x3B:
-      regs->sp--;
-      cycles += 5;
-      break;
+    case 0x3B: { regs->sp--; cycles += 5; break; }
     // INC A / 1 byte / 5 cycles / S Z A P - / incremtent A by 1 
-    case 0x3C:
-      regs->ac = check_auxilary_flag(regs->a, 1, ADD);
-      regs->a++;
-      regs->s = check_sign_flag(regs->a);
-      regs->z = check_zero_flag(regs->a);
-      regs->p = check_parity_flag(regs->a);
-      cycles += 5;
-      break;
+    case 0x3C: { increment_register(&(regs->a), &(regs->f)); cycles += 5; break; }
     // DCR A / 1 byte / 5 cycles / S Z AC P - / decrement a by 1
-    case 0x3D:
-      regs->ac = check_auxilary_flag(regs->a, 1, SUBTRACT);
-      regs->a--;
-      regs->s = check_sign_flag(regs->a);
-      regs->z = check_zero_flag(regs->a);
-      regs->p = check_parity_flag(regs->a);
-      cycles += 5;
-      break;
+    case 0x3D: { decrement_register(&(regs->a), &(regs->f)); cycles += 5; break; }
     // MVI A, d8 / 2 bytes / 7 cycles / - - - - - / move next byte into a reg
-    case 0x3E:
-      regs->a = fetch_byte();
-      cycles += 7;
-      break;
+    case 0x3E: { regs->a = fetch_byte(); cycles += 7; break; }
     // CMC / 1 byte / 4 cycles / - - - - CA / flips the cary bit
     case 0x3F:
       regs->ca = ~regs->ca;
@@ -1246,11 +994,37 @@ void _8080::execute_instruction(u8 opcode) {
   }
 }
 
+void _8080::LXI_register(u16* reg) {
+  u16 bytes = fetch_bytes();    
+  *reg = bytes;
+}
+
+void _8080::increment_register(u8* reg, u8* flags) {
+  u8 res = *(reg) + 1;
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(reg), res) << AUX_POS); // aux flag
+  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
+  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
+  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+}
+
+void _8080::decrement_register(u8* reg, u8* flags) {
+  u8 res = *(reg) - 1;
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(reg), res) << AUX_POS); // aux flag
+  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
+  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
+  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+}
+
+void _8080::DAD_register(u16* hl, u16 reg_pair, u8* flags) {
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(hl), reg_pair, ADD) << CARRY_POS); // carry
+  *(hl) = *(hl) + reg_pair;
+}
+
 // note: the a is the reg that the result is stored in
 void _8080::add_register(u8* a, u8 val, u8* flags) {
   u8 res = *(a) + val;
   *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, ADD) << CARRY_POS); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, ADD) << AUX_POS); // aux flag
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
   *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
@@ -1260,7 +1034,7 @@ void _8080::add_register(u8* a, u8 val, u8* flags) {
 void _8080::subtract_register(u8* a, u8 val, u8* flags) {
   u8 res = *(a) - val;
   *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, SUBTRACT) << CARRY_POS); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, SUBTRACT) << AUX_POS); // aux flag
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
   *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
@@ -1270,7 +1044,7 @@ void _8080::subtract_register(u8* a, u8 val, u8* flags) {
 void _8080::bitwise_AND_register(u8* a, u8 val, u8* flags) {
   u8 res = *(a) & val;
   *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, AND) << CARRY_POS); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, AND) << AUX_POS); // aux flag
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
   *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
