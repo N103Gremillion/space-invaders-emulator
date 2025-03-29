@@ -11,6 +11,11 @@
 
 #define WHITE 0xFFFFFF
 #define BLACK 0x000000
+#define CARRY_POS 0
+#define AUX_POS 4
+#define SIGN_POS 7
+#define ZERO_POS 6
+#define PARITY_POS 2
 
 using u16 = uint16_t;
 using u8 = uint8_t;

@@ -191,9 +191,7 @@ u16 _8080::fetch_bytes() {
 // check type of instruciotn using opcode and perform instruciton
 void _8080::execute_instruction(u8 opcode) {
   switch (opcode) {
-
     // 00 - 0F
-
     // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
     case 0x00:
       cycles += 4;
@@ -1099,10 +1097,51 @@ void _8080::execute_instruction(u8 opcode) {
      
 
     // A0 - AF /////////////////////////////////////////////////////////
-    // ANA B / bitwize and & between A and B stored in A
+    // ANA B / 1 byte /  4 cycles / CA Z AC S P /  bitwize and & between A and B stored in A
     case 0xA0:
-      printf("A = A & B. \n");
+      bitwise_AND_register(&(regs->a), regs->b, &(regs->f));
+      cycles += 4;
       break;
+    // ANA C / 1 byte / 4 cycles / CA Z AC S P / bitwize and & between A and C stored in A
+    case 0xA1:
+      bitwise_AND_register(&(regs->a), regs->c, &(regs->f));
+      cycles += 4;
+      break;
+    // ANA D / 1 byte / 4 cycles / CA Z AC S P / bitwize and & between A and D stored in A
+    case 0xA2:
+      bitwise_AND_register(&(regs->a), regs->d, &(regs->f));
+      cycles += 4;
+      break;
+    // ANA E / 1 byte / 4 cycles / CA Z AC S P / bitwize and & between A and E stored in A
+    case 0xA3:
+      bitwise_AND_register(&(regs->a), regs->e, &(regs->f));
+      cycles += 4;
+      break;
+    // ANA H / 1 byte / 4 cycles / CA Z AC S P / bitwize and & between A and H stored in A
+    case 0xA4:
+      bitwise_AND_register(&(regs->a), regs->h, &(regs->f));
+      cycles += 4;
+      break;
+    // ANA L / 1 byte / 4 cycles / CA Z AC S P / bitwize and & between A and L stored in A
+    case 0xA5:
+      bitwise_AND_register(&(regs->a), regs->l, &(regs->f));
+      cycles += 4;
+      break;
+    // ANA M / 1 byte / 7 cycles / CA Z AC S P / bitwize and & between A and memory[HL] stored in A
+    case 0xA6:
+      bitwise_AND_register(&(regs->a), memory[regs->hl], &(regs->f));
+      cycles += 7;
+      break;
+    // ANA A / 1 byte / 4 cycles / CA Z AC S P / bitwize and & between A and A stored in A
+    case 0xA7:
+      bitwise_AND_register(&(regs->a), regs->a, &(regs->f));
+      cycles += 4;
+      break;
+    // XRA (XOR) B / 1 byte / 4 cycles / S Z AC P CA / XOR the A and specified byte and store in A
+    case 0XA8:
+      bitwise_XOR_register(&(regs->a), regs->b, &(regs->f));
+      cycles += 4;
+      break;  
 
 
     // B0 - BF /////////////////////////////////////////////////////////
@@ -1210,21 +1249,39 @@ void _8080::execute_instruction(u8 opcode) {
 // note: the a is the reg that the result is stored in
 void _8080::add_register(u8* a, u8 val, u8* flags) {
   u8 res = *(a) + val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, ADD) << 0); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, ADD) << 4); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << 7); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << 6); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag(res) << 2); // parity flag
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, ADD) << CARRY_POS); // carry
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, ADD) << AUX_POS); // aux flag
+  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
+  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
+  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
   *a = res;
 }
 
 void _8080::subtract_register(u8* a, u8 val, u8* flags) {
   u8 res = *(a) - val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, SUBTRACT) << 0); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, SUBTRACT) << 4); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << 7); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << 6); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag(res) << 2); // parity flag
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, SUBTRACT) << CARRY_POS); // carry
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, SUBTRACT) << AUX_POS); // aux flag
+  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
+  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
+  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+  *a = res;
+}
+
+void _8080::bitwise_AND_register(u8* a, u8 val, u8* flags) {
+  u8 res = *(a) & val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, AND) << CARRY_POS); // carry
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), val, AND) << AUX_POS); // aux flag
+  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
+  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
+  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+  *a = res;
+}
+
+void _8080::bitwise_XOR_register(u8* a, u8 val, u8* flags) {
+  u8 res = *(a) ^ val;
+  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
+  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
+  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
   *a = res;
 }
 
@@ -1242,26 +1299,11 @@ int _8080::check_zero_flag(int num) {
   return num == 0 ? 1 : 0;
 }
 
-int _8080::check_auxilary_flag(u8 num, u8 num2, Operation operation) {
-  if (operation == ADD) {
-    if (((num & 0x0F) + (num2 & 0x0F)) > 0x0F) {
-      return 1;
-    }
-    else {
-      return 0;
-    }
+int _8080::check_auxilary_flag(u8 num, u16 res) {
+  if (((num & 0xF) + (res & 0xF)) >> 4 > 0xF) {
+    return 1;
   }
-  // subtraction 
-  else if (operation == SUBTRACT) {
-    if ((num2 & 0x0F) > (num & 0x0F)) {
-      return 1;
-    }
-    else {
-      return 0;
-    }
-  }
-  // invalid operation
-  else {
+  else{
     return 0;
   }
 }
@@ -1288,6 +1330,9 @@ int _8080::check_carry_flag(u8 num, u8 num2, Operation operation) {
       break;
     case RLC:
       carry = (num & 0x80) >> 7;
+      break;
+    case AND:
+      carry = 0;
       break;
   }
 

@@ -27,9 +27,9 @@ enum Operation {
     ADD,
     SUBTRACT,
     RLC, // rotate left through carry
+    XOR, // Logical XOR
     AND, // Logical AND
-    OR, // Logical OR
-    XOR // Logical XOR
+    OR // Logical OR
 };
 
 class _8080 {
@@ -51,6 +51,8 @@ class _8080 {
         void execute_instruction(u8 opcode);
         void add_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
         void subtract_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being subtracted from a) f_reg (flags reg)
+        void bitwise_AND_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
+        void bitwise_XOR_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
 
     public:
         Registers* regs;
@@ -60,7 +62,7 @@ class _8080 {
         int check_zero_flag(int num); // return value of zero flag 
         int check_sign_flag(u8 num); // for u8 return value of sign flag
         int check_sign_flag(u16 num); // for u16 return value of sign flag
-        int check_auxilary_flag(u8 num, u8 num2, Operation operation); // return value of aux flag after a given operation
+        int check_auxilary_flag(u8 num, u16 res); // return value of aux flag after a given operation
         int check_parity_flag(u16 num); // return value of parity flag 
         int check_carry_flag(u8 num, u8 num2, Operation operation);
         int check_carry_flag(u16 num, u16 num2, Operation operation);

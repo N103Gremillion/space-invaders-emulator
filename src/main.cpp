@@ -19,7 +19,6 @@ int main() {
   _8080_->load_rom("../invaders/invaders.g", INVADERS_G_START);
   _8080_->load_rom("../invaders/invaders.f", INVADERS_F_START);
   _8080_->load_rom("../invaders/invaders.e", INVADERS_E_START);
-  
   _8080_->run();
   return 0;
 }
