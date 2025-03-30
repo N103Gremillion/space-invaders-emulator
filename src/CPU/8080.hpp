@@ -29,7 +29,8 @@ enum Operation {
     RLC, // rotate left through carry
     XOR, // Logical XOR
     AND, // Logical AND
-    OR // Logical OR
+    OR, // Logical OR
+    COMP // comparison
 };
 
 class _8080 {
@@ -58,7 +59,7 @@ class _8080 {
         void bitwise_AND_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
         void bitwise_XOR_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
         void bitwise_OR_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
-
+        void compare_register(u8* a, u8 val, u8* f_reg); // The specified byte is compared to the contents of the accumulator. The comparison is performed by internally subtracting the contents of REG from the ac- cumulator (leaving both unchanged) and setting the condi- tion bits according to the result.
     public:
         Registers* regs;
         u8* memory;

@@ -589,6 +589,16 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xB6: { bitwise_OR_register(&(regs->a), memory[regs->hl], &(regs->f)); cycles += 7; break; }
     case 0xB7: { bitwise_OR_register(&(regs->a), regs->a, &(regs->f)); cycles += 4; break; }
 
+    // CMP B / 1 byte / 4 cycles / compare specified byte with the accumulator and set flag accourding to result
+    case 0xB8: { compare_register(&(regs->a), regs->b, &(regs->f)); cycles +=4; break; }
+    case 0xB9: { compare_register(&(regs->a), regs->c, &(regs->f)); cycles +=4; break; }
+    case 0xBA: { compare_register(&(regs->a), regs->d, &(regs->f)); cycles +=4; break; }
+    case 0xBB: { compare_register(&(regs->a), regs->e, &(regs->f)); cycles +=4; break; }
+    case 0xBC: { compare_register(&(regs->a), regs->h, &(regs->f)); cycles +=4; break; }
+    case 0xBD: { compare_register(&(regs->a), regs->l, &(regs->f)); cycles +=4; break; }
+    case 0xBE: { compare_register(&(regs->a), memory[regs->hl], &(regs->f)); cycles +=7; break; }
+    case 0xBF: { compare_register(&(regs->a), regs->a, &(regs->f)); cycles +=4; break; }
+
     // C0 - CF ////////////////////////////////////////////////////////////
     // RNZ (return if zero) / checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location 
     case 0xC0:
@@ -761,6 +771,16 @@ void _8080::bitwise_OR_register(u8* a, u8 val, u8* flags) {
   *a = res;
 }
 
+void _8080::compare_register(u8* a, u8 val, u8* flags) {
+  // note : comparison is done using subtraction
+  u8 res = *(a) - val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, COMP) << CARRY_POS); // carry
+  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
+  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
+  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
+  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+}
+
 int _8080::check_sign_flag(u8 num) {
   int msb = (0x80 & num);
   return (msb == 0x80) ? 1 : 0;
@@ -815,6 +835,9 @@ int _8080::check_carry_flag(u8 num, u8 num2, Operation operation) {
       break;
     case OR:
       carry = 0;
+      break;
+    case COMP:
+      carry = (num < num2) ? 1 : 0;
       break;
   }
 
