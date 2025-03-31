@@ -164,8 +164,8 @@ void _8080::run() {
     // for debugging
     cout << "Press any key to continue...";
     cin.get();
-    // u16 low = fetch_byte();
-    // u16 high = fetch_byte();
+    u8 opcode = fetch_byte();
+    execute_instruction(opcode);
     // cout << hex << ((high << 8) | low) << endl;
     // SDL_Delay(1000);
   }
@@ -600,8 +600,8 @@ void _8080::execute_instruction(u8 opcode) {
     // RNZ (return if zero) / 1 byte /  checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location 
     case 0xC0: {
       if (regs->z == 0) {
-       regs->pc = pop_stack();
-       cycles += 11;
+        RET();
+        cycles += 11;
       } else {
         cycles += 5;
       }
@@ -615,30 +615,100 @@ void _8080::execute_instruction(u8 opcode) {
       regs->pc = mem_loc;
       cycles += 10;
     }
+    // PUSH B / 1 byte / 11 cycles / pushes the BC pair onto the stack
+    case 0xC5: { push_register(&(regs->b), &(regs->c)); cycles += 11; break; }
+    // RST 1 / 1 byte / 11 cycles / 
+    case 0xCF: { cycles += 11; break; }
+    // RET / 1 byte / 10 cycles
+    case 0xC9: { RET(); cycles += 10; break; }
+    // CZ a16 / 3 byte / 17/11 / call if zero
+    case 0xCC: {
+      if (regs->z == 0) {
+        CALL(fetch_bytes());
+        cycles += 17;
+      } else {
+        regs->pc += 2;
+        cycles += 11;
+      }
+      break;
+    }
+    // CALL / 3 bytes / 17 cycles / 
+    case 0xCD: { CALL(fetch_bytes()); cycles += 17; break; }
 
 
     // D0 - DF ///////////////////////////////////////////////////////////////
-    // RNC / If the carry bit is zero, a return (pop 2 bytes from stack to get) operation is performed.
-    case 0xD0:
-      printf("If the carry bit is zero, a return operation is performed. \n");
+    // RNC (return if no carry) / 1 byte / 11/5 cyles
+    case 0xD0: {
+      if (regs->ca == 0) {
+        RET();
+        cycles += 11;
+      } else {
+        cycles += 5;
+      }
       break;
+    }
     // POP D / 1 byte / 10 cycles / - - - - - / 
     case 0xD1: { pop_register(&(regs->d), &(regs->e)); cycles += 10; break; }
+    // PUSH D / 1 byte / 11 cycles / pushes the DE pair onto the stack
+    case 0xD5: { push_register(&(regs->d), &(regs->e)); cycles += 11; break; }
+    // RET / 1 byte / 10 cycles
+    case 0xD9: { RET(); cycles += 10; break; }
+    // CC / 3 bytes / 17/11 cyles / call if carry
+    case 0xDC : { 
+      if (regs->ca){
+        CALL(fetch_bytes());
+        cycles += 17;
+      } else {
+        regs->pc += 2;
+        cycles += 11;
+      }
+      break;
+    }
+    // CALL / 3 bytes / 17 cycles / 
+    case 0xDD: { CALL(fetch_bytes()); cycles += 17; break; }
 
 
     // E0 - EF ///////////////////////////////////////////////////////////////
-    // RPO / If the Parity bit is zero (indicating odd parity), a return (pop 2 bytes form stack and set pc to it) operation is performed.
-    case 0xE0:
-      printf("If the Parity bit is zero (indicating odd parity), a return operation is performed. \n");
+    // RPO / 1 byte / 11/5 cycles / If the Parity bit is zero (indicating odd parity), a return (pop 2 bytes form stack and set pc to it) operation is performed.
+    case 0xE0: {
+      if (regs->p == 0) {
+        RET();
+        cycles += 11;
+      } else {
+        cycles += 5;
+      }
       break;
+    }
     // POP H / 1 byte / 10 cycles / - - - - - / 
     case 0xE1: { pop_register(&(regs->h), &(regs->l)); cycles += 10; break; }
+    // PUSH H / 1 byte / 11 cycles / pushes the HL pair onto the stack
+    case 0xE5: { push_register(&(regs->h), &(regs->l)); cycles += 11; break; }
+    // CPE / 3 bytes / 17/11 cyles / call if parity is even(1)
+    case 0xEC : { 
+      if (regs->p){
+        CALL(fetch_bytes());
+        cycles += 17;
+      } else {
+        regs->pc += 2;
+        cycles += 11;
+      }
+      break;
+    }
+    // CALL / 3 bytes / 17 cycles / 
+    case 0xED: { CALL(fetch_bytes()); cycles += 17; break; }
+
 
     // F0 - FF //////////////////////////////////////////////////////////////
-    // RP / pc = (2 bytes poped from stack) if (sign flag is 0)
-    case 0xF0:
-      printf("If the Sign bit is zero (indicating a positive result). a return operation is performed. \n");  
+    // RP / 1 byte / 11/5 cycles (if sign bit zero return)
+    case 0xF0: {
+      if (regs->s == 0) {
+        RET();
+        cycles += 11;
+      } else {
+        cycles += 5;
+      }
       break;
+    }
     // POP PSW / 1 byte / 10 cycles / - - - - - / 
     case 0xF1: { pop_register(&(regs->a), &(regs->f)); cycles += 10; break; }
     // JP a16 (jump if positive)/ pc = next 2 bytes in memory if sign flag = 0
@@ -653,10 +723,8 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xF4:
       printf(" ");
       break;
-    //
-    case 0xF5:
-      printf(" ");
-      break;
+    // PUSH PSW / 1 byte / 11 cycles / pushes the PSW pair onto the stack
+    case 0xF5: { push_register(&(regs->a), &(regs->f)); cycles += 11; break; }
     //
     case 0xF6:
       printf(" ");
@@ -681,14 +749,19 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xFB:
       printf(" ");
       break;
-    //
-    case 0xFC:
-      printf(" ");
+    // CM / 3 bytes / 17/11 cyles / call if minus (sign bit = 1)
+    case 0xFC : { 
+      if (regs->s){
+        CALL(fetch_bytes());
+        cycles += 17;
+      } else {
+        regs->pc += 2;
+        cycles += 11;
+      }
       break;
-    //
-    case 0xFD:
-      printf(" ");
-      break;
+    }
+    // CALL / 3 bytes / 17 cycles / 
+    case 0xFD: { CALL(fetch_bytes()); cycles += 17; break; }
     //
     case 0xFE:
       printf(" ");
@@ -798,6 +871,26 @@ void _8080::pop_register(u8* first, u8* second) {
   *second = memory[regs->sp];
   *first = memory[regs->sp + 1];
   regs->sp += 2;
+}
+
+void _8080::push_register(u8* first, u8* second) {
+  memory[regs->sp - 1] = *first;
+  memory[regs->sp - 2] = *second;
+  regs->sp -= 2;
+}
+
+void _8080::RET() {
+  u8 low = memory[regs->sp];
+  u8 high = memory[regs->sp + 1];
+  regs->pc = ((high << 8) | low);
+  regs->sp += 2;
+}
+
+void _8080::CALL(u16 memory_address) {
+  regs->sp -= 2;
+  memory[regs->sp] = u8(regs->pc);
+  memory[regs->sp + 1] = u8(regs->pc >> 8);
+  regs->pc = memory_address;
 }
 
 int _8080::check_sign_flag(u8 num) {
