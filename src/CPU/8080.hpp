@@ -60,6 +60,9 @@ class _8080 {
         void bitwise_XOR_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
         void bitwise_OR_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
         void compare_register(u8* a, u8 val, u8* f_reg); // The specified byte is compared to the contents of the accumulator. The comparison is performed by internally subtracting the contents of REG from the ac- cumulator (leaving both unchanged) and setting the condi- tion bits according to the result.
+        u16 pop_stack(); // get the next 2 bytes from the current location of the sp
+        void pop_register(u8* first, u8* second); // given 2 bytes that represent a reg pair they are set to the contents of the next 2 bytes in memory referenfced by the sp
+    
     public:
         Registers* regs;
         u8* memory;

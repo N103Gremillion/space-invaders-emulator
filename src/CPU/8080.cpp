@@ -180,11 +180,8 @@ u8 _8080::fetch_byte() {
 
 // fetch the next 2 bytes in memory
 u16 _8080::fetch_bytes() {
-  static int i = 0;
-  i++;
   u8* start = &(memory[regs->pc]);
   u16* bytes = (u16*) (start);
-  // cout << hex << *(bytes) << endl;
   regs->pc += 2;
   return *bytes;
 }
@@ -493,24 +490,24 @@ void _8080::execute_instruction(u8 opcode) {
     // HLT / 1 byte / 7 cycles / 
     case 0x76:
       break;
-    case 0x77:
-      break;
-    case 0x78:
-      break;
-    case 0x79:
-      break;
-    case 0x7A:
-      break;
-    case 0x7B:
-      break;
-    case 0x7C:
-      break;
-    case 0x7D:
-      break;
-    case 0x7E:
-      break;
-    case 0x7F:
-      break;
+    // MOV M,A / 1 byte / 7 cycles /  moves contents in A into memory location reference by HL
+    case 0x77: { memory[regs->hl] = regs->a; cycles += 7; break; }
+    // MOV A,B / 1 byte / 5 cycles / moves B contents into A
+    case 0x78: { regs->a = regs->b; cycles += 5; break; }
+    // MOV A,C / 1 byte / 5 cycles / moves C contents into A
+    case 0x79: { regs->a = regs->c; cycles += 5; break; }
+    // MOV A,D / 1 byte / 5 cycles / moves D contents into A
+    case 0x7A: { regs->a = regs->d; cycles += 5; break; }
+    // MOV A,E / 1 byte / 5 cycles / moves E contents into A
+    case 0x7B: { regs->a = regs->e; cycles += 5; break; }
+    // MOV A,H / 1 byte / 5 cylcles / moves contents of H into A
+    case 0x7C: { regs->a = regs->h; cycles += 5; break; }
+    // MOV A,L / 1 byte / 5 cyles / moves contents of L into A
+    case 0x7D: { regs->a = regs->l; cycles += 5; break; }
+    // MOV A,M / 1 byte / 7 cyles / moves contents memory[HL] into A
+    case 0x7E: { regs->a = memory[regs->hl]; cycles += 7; break; }
+    // MOV A,A / 1 byte / 5 cyles / moves contents of A into A
+    case 0x7F: { regs->a = regs->a; cycles += 5; break; }
 
 
     // 80 - 8F ///////////////////////////////////////////////////////
@@ -600,10 +597,18 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xBF: { compare_register(&(regs->a), regs->a, &(regs->f)); cycles +=4; break; }
 
     // C0 - CF ////////////////////////////////////////////////////////////
-    // RNZ (return if zero) / checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location 
-    case 0xC0:
-      printf("checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location. \n");
+    // RNZ (return if zero) / 1 byte /  checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location 
+    case 0xC0: {
+      if (regs->z == 0) {
+       regs->pc = pop_stack();
+       cycles += 11;
+      } else {
+        cycles += 5;
+      }
       break;
+    }
+    // POP B / 1 byte / 10 cycles / - - - - - / 
+    case 0xC1: { pop_register(&(regs->b), &(regs->c)); cycles += 10; break; }
     // JMP a16  / 3 bytes / 10 cycles / - - - - - / uncondition jump to the mem address given by next 2 bytes in memory  
     case 0xC3: {
       u16 mem_loc = fetch_bytes();
@@ -617,6 +622,8 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xD0:
       printf("If the carry bit is zero, a return operation is performed. \n");
       break;
+    // POP D / 1 byte / 10 cycles / - - - - - / 
+    case 0xD1: { pop_register(&(regs->d), &(regs->e)); cycles += 10; break; }
 
 
     // E0 - EF ///////////////////////////////////////////////////////////////
@@ -624,17 +631,16 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xE0:
       printf("If the Parity bit is zero (indicating odd parity), a return operation is performed. \n");
       break;
-
+    // POP H / 1 byte / 10 cycles / - - - - - / 
+    case 0xE1: { pop_register(&(regs->h), &(regs->l)); cycles += 10; break; }
 
     // F0 - FF //////////////////////////////////////////////////////////////
     // RP / pc = (2 bytes poped from stack) if (sign flag is 0)
     case 0xF0:
       printf("If the Sign bit is zero (indicating a positive result). a return operation is performed. \n");  
       break;
-    // POP PSW / PSW = (pop 2 bytes from stack)
-    case 0xF1:
-      printf("set PSW = to the top 2 bytes on the stack by poping them. \n");
-      break;
+    // POP PSW / 1 byte / 10 cycles / - - - - - / 
+    case 0xF1: { pop_register(&(regs->a), &(regs->f)); cycles += 10; break; }
     // JP a16 (jump if positive)/ pc = next 2 bytes in memory if sign flag = 0
     case 0xF2:
       printf("pc = next 2 bytes in memory if sign flag = 0. \n");
@@ -779,6 +785,19 @@ void _8080::compare_register(u8* a, u8 val, u8* flags) {
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
   *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+}
+
+u16 _8080::pop_stack() {
+  u8* start = &(memory[regs->sp]);
+  u16* bytes = (u16*) start;
+  regs->sp += 2;
+  return *bytes;
+}
+
+void _8080::pop_register(u8* first, u8* second) {
+  *second = memory[regs->sp];
+  *first = memory[regs->sp + 1];
+  regs->sp += 2;
 }
 
 int _8080::check_sign_flag(u8 num) {
