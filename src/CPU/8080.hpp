@@ -65,6 +65,7 @@ class _8080 {
         void pop_register(u8* first, u8* second); // given 2 bytes that represent a reg pair they are set to the contents of the next 2 bytes in memory referenfced by the sp
         void RET(); // sets the pc = to the top 2 bytes on the stack
         void CALL(u16 memory_address); // (SP-1)<-PC.hi;(SP-2)<-PC.lo;SP<-SP-2;PC=adr
+        void JMP(); // jump to next 16 bytes in memory
         
     public:
         Registers* regs;

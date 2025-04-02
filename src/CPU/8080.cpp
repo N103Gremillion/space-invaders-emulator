@@ -609,12 +609,18 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // POP B / 1 byte / 10 cycles / - - - - - / 
     case 0xC1: { pop_register(&(regs->b), &(regs->c)); cycles += 10; break; }
-    // JMP a16  / 3 bytes / 10 cycles / - - - - - / uncondition jump to the mem address given by next 2 bytes in memory  
-    case 0xC3: {
-      u16 mem_loc = fetch_bytes();
-      regs->pc = mem_loc;
+    // JNZ a16 / 3 bytes / 10 cycles / - - - - - / jump if not zero
+    case 0xC2: {
+      if (regs->z == 0) {
+        JMP();
+      } else {
+        regs->pc += 2;
+      }
       cycles += 10;
+      break;
     }
+    // JMP a16  / 3 bytes / 10 cycles / - - - - - / uncondition jump to the mem address given by next 2 bytes in memory  
+    case 0xC3: { JMP(); cycles += 10; }
     // PUSH B / 1 byte / 11 cycles / pushes the BC pair onto the stack
     case 0xC5: { push_register(&(regs->b), &(regs->c)); cycles += 11; break; }
     // RST 1 / 1 byte / 11 cycles / 
@@ -649,6 +655,19 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // POP D / 1 byte / 10 cycles / - - - - - / 
     case 0xD1: { pop_register(&(regs->d), &(regs->e)); cycles += 10; break; }
+    // JNC a16 / 3 bytes / 10 cycles / - - - - - / jump if not carry
+    case 0xD2: {
+      if (regs->ca == 0) {
+        JMP();
+      } else {
+        regs->pc += 2;
+      }
+      cycles += 10;
+      break;
+    }
+    // OUT d8 / 2 bytes / 10 cycles / 
+    case 0XD3:
+
     // PUSH D / 1 byte / 11 cycles / pushes the DE pair onto the stack
     case 0xD5: { push_register(&(regs->d), &(regs->e)); cycles += 11; break; }
     // RET / 1 byte / 10 cycles
@@ -681,6 +700,16 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // POP H / 1 byte / 10 cycles / - - - - - / 
     case 0xE1: { pop_register(&(regs->h), &(regs->l)); cycles += 10; break; }
+    // JP0 a16 / 3 bytes / 10 cycles / - - - - - / jump if parity odd
+    case 0xE2: {
+      if (regs->p == 0) {
+        JMP();
+      } else {
+        regs->pc += 2;
+      }
+      cycles += 10;
+      break;
+    }
     // PUSH H / 1 byte / 11 cycles / pushes the HL pair onto the stack
     case 0xE5: { push_register(&(regs->h), &(regs->l)); cycles += 11; break; }
     // CPE / 3 bytes / 17/11 cyles / call if parity is even(1)
@@ -711,10 +740,16 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // POP PSW / 1 byte / 10 cycles / - - - - - / 
     case 0xF1: { pop_register(&(regs->a), &(regs->f)); cycles += 10; break; }
-    // JP a16 (jump if positive)/ pc = next 2 bytes in memory if sign flag = 0
-    case 0xF2:
-      printf("pc = next 2 bytes in memory if sign flag = 0. \n");
+    // JP a16 / 3 bytes / 10 cycles / - - - - - / jump if positive
+    case 0xF2: {
+      if (regs->s == 0) {
+        JMP();
+      } else {
+        regs->pc += 2;
+      }
+      cycles += 10;
       break;
+    }
     // DI (dissable interupts)
     case 0xF3:
       printf("disable interrupts, preventing the processor from responding to interrupt requests. \n");
@@ -893,6 +928,10 @@ void _8080::CALL(u16 memory_address) {
   regs->pc = memory_address;
 }
 
+void _8080::JMP() {
+  u16 mem_loc = fetch_bytes();
+  regs->pc = mem_loc;
+}
 int _8080::check_sign_flag(u8 num) {
   int msb = (0x80 & num);
   return (msb == 0x80) ? 1 : 0;
