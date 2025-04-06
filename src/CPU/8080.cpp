@@ -623,8 +623,8 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC3: { JMP(); cycles += 10; }
     // PUSH B / 1 byte / 11 cycles / pushes the BC pair onto the stack
     case 0xC5: { push_register(&(regs->b), &(regs->c)); cycles += 11; break; }
-    // RST 1 / 1 byte / 11 cycles / 
-    case 0xCF: { cycles += 11; break; }
+    // RST 0 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
+    case 0xC7: { RST(0); cycles += 11; break; }
     // RET / 1 byte / 10 cycles
     case 0xC9: { RET(); cycles += 10; break; }
     // CZ a16 / 3 byte / 17/11 / call if zero
@@ -640,7 +640,8 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CALL / 3 bytes / 17 cycles / 
     case 0xCD: { CALL(fetch_bytes()); cycles += 17; break; }
-
+    // RST 1 / 1 byte / 11 cycles / 
+    case 0xCF: { RST(1); cycles += 11; break; }
 
     // D0 - DF ///////////////////////////////////////////////////////////////
     // RNC (return if no carry) / 1 byte / 11/5 cyles
@@ -670,6 +671,8 @@ void _8080::execute_instruction(u8 opcode) {
 
     // PUSH D / 1 byte / 11 cycles / pushes the DE pair onto the stack
     case 0xD5: { push_register(&(regs->d), &(regs->e)); cycles += 11; break; }
+    // RST 2 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
+    case 0xD7: { RST(2); cycles += 11; break; }
     // RET / 1 byte / 10 cycles
     case 0xD9: { RET(); cycles += 10; break; }
     // CC / 3 bytes / 17/11 cyles / call if carry
@@ -685,7 +688,8 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CALL / 3 bytes / 17 cycles / 
     case 0xDD: { CALL(fetch_bytes()); cycles += 17; break; }
-
+    // RST 3 / 1 byte / 11 cycles / 
+    case 0xDF: { RST(3); cycles += 11; break; }
 
     // E0 - EF ///////////////////////////////////////////////////////////////
     // RPO / 1 byte / 11/5 cycles / If the Parity bit is zero (indicating odd parity), a return (pop 2 bytes form stack and set pc to it) operation is performed.
@@ -712,6 +716,8 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // PUSH H / 1 byte / 11 cycles / pushes the HL pair onto the stack
     case 0xE5: { push_register(&(regs->h), &(regs->l)); cycles += 11; break; }
+    // RST 4 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
+    case 0xE7: { RST(4); cycles += 11; break; }
     // CPE / 3 bytes / 17/11 cyles / call if parity is even(1)
     case 0xEC : { 
       if (regs->p){
@@ -725,7 +731,8 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CALL / 3 bytes / 17 cycles / 
     case 0xED: { CALL(fetch_bytes()); cycles += 17; break; }
-
+    // RST 5 / 1 byte / 11 cycles / 
+    case 0xEF: { RST(5); cycles += 11; break; }
 
     // F0 - FF //////////////////////////////////////////////////////////////
     // RP / 1 byte / 11/5 cycles (if sign bit zero return)
@@ -764,10 +771,8 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xF6:
       printf(" ");
       break;
-    //
-    case 0xF7:
-      printf(" ");
-      break;
+    // RST 6 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
+    case 0xF7: { RST(6); cycles += 11; break; }
     //
     case 0xF8:
       printf(" ");
@@ -801,10 +806,8 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xFE:
       printf(" ");
       break;
-    //
-    case 0xFF:
-      printf(" ");
-      break;
+    // RST 7 / 1 byte / 11 cycles / 
+    case 0xFF: { RST(7); cycles += 11; break; }
   }
 }
 
@@ -922,9 +925,9 @@ void _8080::RET() {
 }
 
 void _8080::CALL(u16 memory_address) {
+  memory[regs->sp - 1] = u8(regs->pc >> 8);
+  memory[regs->sp - 2] = u8(regs->pc);
   regs->sp -= 2;
-  memory[regs->sp] = u8(regs->pc);
-  memory[regs->sp + 1] = u8(regs->pc >> 8);
   regs->pc = memory_address;
 }
 
@@ -932,6 +935,12 @@ void _8080::JMP() {
   u16 mem_loc = fetch_bytes();
   regs->pc = mem_loc;
 }
+
+void _8080::RST(u8 n) {
+  // save the pc to the stack so it can be retreived later
+  CALL(n * 8);
+}
+
 int _8080::check_sign_flag(u8 num) {
   int msb = (0x80 & num);
   return (msb == 0x80) ? 1 : 0;

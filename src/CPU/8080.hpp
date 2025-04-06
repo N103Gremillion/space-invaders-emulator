@@ -66,6 +66,7 @@ class _8080 {
         void RET(); // sets the pc = to the top 2 bytes on the stack
         void CALL(u16 memory_address); // (SP-1)<-PC.hi;(SP-2)<-PC.lo;SP<-SP-2;PC=adr
         void JMP(); // jump to next 16 bytes in memory
+        void RST(u8 address); // pushes the contents of the pc on the stack and then jumps to a specific memory location specified by the
         
     public:
         Registers* regs;
