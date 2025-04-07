@@ -620,13 +620,36 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     }
     // JMP a16  / 3 bytes / 10 cycles / - - - - - / uncondition jump to the mem address given by next 2 bytes in memory  
-    case 0xC3: { JMP(); cycles += 10; }
+    case 0xC3: { JMP(); cycles += 10; break; }
     // PUSH B / 1 byte / 11 cycles / pushes the BC pair onto the stack
     case 0xC5: { push_register(&(regs->b), &(regs->c)); cycles += 11; break; }
     // RST 0 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
     case 0xC7: { RST(0); cycles += 11; break; }
+    // RZ / 1 byte / 11/5 cycles / return if zero
+    case 0xC8: {
+      if (regs->z == 1) {
+        RET();
+        cycles += 11;
+      } else {
+        cycles += 5;
+      }
+      break;
+    }
     // RET / 1 byte / 10 cycles
     case 0xC9: { RET(); cycles += 10; break; }
+    // JZ a16 / 3 bytes / 10 cycles / - - - - - / jump if zero
+    case 0xCA: {
+      if (regs->z == 1) {
+        JMP(); 
+        cycles += 10; 
+      } else {
+        fetch_bytes();
+        cycles += 7;
+      }
+      break;
+    }
+    // JMP a16  / 3 bytes / 10 cycles / - - - - - / uncondition jump to the mem address given by next 2 bytes in memory  
+    case 0xCB: { JMP(); cycles += 10; break;}
     // CZ a16 / 3 byte / 17/11 / call if zero
     case 0xCC: {
       if (regs->z == 0) {
@@ -640,6 +663,8 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CALL / 3 bytes / 17 cycles / 
     case 0xCD: { CALL(fetch_bytes()); cycles += 17; break; }
+    // ACI / 2 byte / 7 cyles / add next byte to A and the carry
+    case 0xCE: { add_register(&(regs->a), (fetch_byte() + regs->ca), &(regs->f)); cycles += 7; break;}
     // RST 1 / 1 byte / 11 cycles / 
     case 0xCF: { RST(1); cycles += 11; break; }
 
@@ -673,8 +698,29 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xD5: { push_register(&(regs->d), &(regs->e)); cycles += 11; break; }
     // RST 2 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
     case 0xD7: { RST(2); cycles += 11; break; }
+    // RC / 1 byte / 11/5 cycles / return if carry
+    case 0xD8: {
+      if (regs->ca == 1) {
+        RET();
+        cycles += 11;
+      } else {
+        cycles += 5;
+      }
+      break;
+    }
     // RET / 1 byte / 10 cycles
     case 0xD9: { RET(); cycles += 10; break; }
+    // JC a16 / 3 bytes / 10 cycles / - - - - - / jump if carry
+    case 0xDA: {
+      if (regs->ca == 1) {
+        JMP(); 
+        cycles += 10; 
+      } else {
+        fetch_bytes();
+        cycles += 7;
+      }
+      break;
+    }
     // CC / 3 bytes / 17/11 cyles / call if carry
     case 0xDC : { 
       if (regs->ca){
@@ -688,6 +734,8 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CALL / 3 bytes / 17 cycles / 
     case 0xDD: { CALL(fetch_bytes()); cycles += 17; break; }
+    // SBI / 2 byte / 7 cyles / subtract next byte to A and the carry
+    case 0xDE: { subtract_register(&(regs->a), (fetch_byte() + regs->ca), &(regs->f)); cycles += 7; break;}
     // RST 3 / 1 byte / 11 cycles / 
     case 0xDF: { RST(3); cycles += 11; break; }
 
@@ -718,6 +766,33 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xE5: { push_register(&(regs->h), &(regs->l)); cycles += 11; break; }
     // RST 4 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
     case 0xE7: { RST(4); cycles += 11; break; }
+    // RPE / 1 byte / 11/5 cycles / return if parity even
+    case 0xE8: {
+      if (regs->p == 1) {
+        RET();
+        cycles += 11;
+      } else {
+        cycles += 5;
+      }
+      break;
+    }
+    // PCHL / 1 byte / 5 cycles / The contents of the H register replace the most significant 8 bits of the program counter, and the con- tents of the L register replace the least significant 8 bits of the program counter.
+    case 0xE9: {
+      regs->pc = (((u16) regs->h << 8) | regs->l);
+      cycles += 5;
+      break;
+    }
+    // JPE a16 / 3 bytes / 10 cycles / - - - - - / jump if parity even
+    case 0xEA: {
+      if (regs->p == 1) {
+        JMP(); 
+        cycles += 10; 
+      } else {
+        fetch_bytes();
+        cycles += 7;
+      }
+      break;
+    }
     // CPE / 3 bytes / 17/11 cyles / call if parity is even(1)
     case 0xEC : { 
       if (regs->p){
@@ -731,6 +806,8 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CALL / 3 bytes / 17 cycles / 
     case 0xED: { CALL(fetch_bytes()); cycles += 17; break; }
+    // XBI / 2 byte / 7 cyles / xor next byte to A 
+    case 0xEE: { bitwise_XOR_register(&(regs->a), fetch_byte(), &(regs->f)); cycles += 7; break;}
     // RST 5 / 1 byte / 11 cycles / 
     case 0xEF: { RST(5); cycles += 11; break; }
 
@@ -773,18 +850,29 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     // RST 6 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
     case 0xF7: { RST(6); cycles += 11; break; }
-    //
-    case 0xF8:
-      printf(" ");
+    // RM / 1 byte / 11/5 cycles / return if minus
+    case 0xF8: {
+      if (regs->s == 1) {
+        RET();
+        cycles += 11;
+      } else {
+        cycles += 5;
+      }
       break;
-    //
-    case 0xF9:
-      printf(" ");
+    }
+    // SPHL / 1 byte / 5 cycles / The 16 bits of data held in the Hand L registers replace the contents of the stack pointer SP.
+    case 0xF9: { regs->sp = regs->hl; cycles += 5; break; }
+    // JM a16 / 3 bytes / 10 cycles / - - - - - / jump if minus (sign bit is 1)
+    case 0xFA: {
+      if (regs->s == 1) {
+        JMP(); 
+        cycles += 10; 
+      } else {
+        fetch_bytes();
+        cycles += 7;
+      }
       break;
-    //
-    case 0xFA:
-      printf(" ");
-      break;
+    }
     //
     case 0xFB:
       printf(" ");
@@ -802,10 +890,8 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CALL / 3 bytes / 17 cycles / 
     case 0xFD: { CALL(fetch_bytes()); cycles += 17; break; }
-    //
-    case 0xFE:
-      printf(" ");
-      break;
+    // CPI / 2 byte / 7 cyles / compare next byte to A 
+    case 0xFE: { compare_register(&(regs->a), fetch_byte(), &(regs->f)); cycles += 7; break;}
     // RST 7 / 1 byte / 11 cycles / 
     case 0xFF: { RST(7); cycles += 11; break; }
   }
