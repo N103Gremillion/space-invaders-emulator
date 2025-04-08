@@ -621,8 +621,21 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // JMP a16  / 3 bytes / 10 cycles / - - - - - / uncondition jump to the mem address given by next 2 bytes in memory  
     case 0xC3: { JMP(); cycles += 10; break; }
+    // CNZ / 3 bytes / 17/11 cycles / - - - - - / Call if not zero
+    case 0xC4: {
+      if (regs->z == 0) {
+        CALL(fetch_bytes());
+        cycles += 17;
+      } else {
+        fetch_bytes();
+        cycles += 11;
+      }
+      break;
+    }
     // PUSH B / 1 byte / 11 cycles / pushes the BC pair onto the stack
     case 0xC5: { push_register(&(regs->b), &(regs->c)); cycles += 11; break; }
+    // ADI d8  / 2 bytes / 7 cycles / S AC Z P CA / add immediate to accumulator
+    case 0xC6: { add_register(&(regs->a), fetch_byte(), &(regs->f)); cycles += 7; break; } 
     // RST 0 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
     case 0xC7: { RST(0); cycles += 11; break; }
     // RZ / 1 byte / 11/5 cycles / return if zero
@@ -652,7 +665,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xCB: { JMP(); cycles += 10; break;}
     // CZ a16 / 3 byte / 17/11 / call if zero
     case 0xCC: {
-      if (regs->z == 0) {
+      if (regs->z == 1) {
         CALL(fetch_bytes());
         cycles += 17;
       } else {
@@ -692,10 +705,22 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     }
     // OUT d8 / 2 bytes / 10 cycles / 
-    case 0XD3:
-
+    case 0XD3: {}
+    // CNC / 3 bytes / 17/11 cycles / - - - - - / Call if not carry
+    case 0xD4: {
+      if (regs->ca == 0) {
+        CALL(fetch_bytes());
+        cycles += 17;
+      } else {
+        fetch_bytes();
+        cycles += 11;
+      }
+      break;
+    }
     // PUSH D / 1 byte / 11 cycles / pushes the DE pair onto the stack
     case 0xD5: { push_register(&(regs->d), &(regs->e)); cycles += 11; break; }
+    // SUI d8  / 2 bytes / 7 cycles / S AC Z P CA / subtract immediate to accumulator
+    case 0xD6: { subtract_register(&(regs->a), fetch_byte(), &(regs->f)); cycles += 7; break; } 
     // RST 2 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
     case 0xD7: { RST(2); cycles += 11; break; }
     // RC / 1 byte / 11/5 cycles / return if carry
@@ -762,8 +787,32 @@ void _8080::execute_instruction(u8 opcode) {
       cycles += 10;
       break;
     }
+    // XTHL / 1 byte / 18 cycles / - - - - - / The contents of the L register are exchanged with the contents of the memory byte whose address is held in the stack pointer SP. The contents of the H register are exchanged with the contents of the memory byte whose address is one greater than that held in the stack pointer.
+    case 0xE3: {
+      u8 address1 = memory[regs->sp];
+      u8 address2 = memory[regs->sp + 1];
+      memory[regs->sp] = regs->l;
+      memory[regs->sp + 1] = regs->h;
+      regs->l = address1;
+      regs->h = address2;
+      cycles += 18;
+      break;
+    }
+    // CPO / 3 bytes / 17/11 cycles / - - - - - / Call if parity odd
+    case 0xE4: {
+      if (regs->p == 0) {
+        CALL(fetch_bytes());
+        cycles += 17;
+      } else {
+        fetch_bytes();
+        cycles += 11;
+      }
+      break;
+    }
     // PUSH H / 1 byte / 11 cycles / pushes the HL pair onto the stack
     case 0xE5: { push_register(&(regs->h), &(regs->l)); cycles += 11; break; }
+    // ANI d8  / 2 bytes / 7 cycles / S AC Z P CA / And Immediate With Accumulator
+    case 0xE6: { bitwise_AND_register(&(regs->a), fetch_byte(), &(regs->f)); cycles += 7; break; }
     // RST 4 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
     case 0xE7: { RST(4); cycles += 11; break; }
     // RPE / 1 byte / 11/5 cycles / return if parity even
@@ -791,6 +840,14 @@ void _8080::execute_instruction(u8 opcode) {
         fetch_bytes();
         cycles += 7;
       }
+      break;
+    }
+    // XCHG / 1 byte / 5 cycles / - - - - - / The 16 bits of data held in the Hand L registers are exchanged with the 16 bits of data held in the D and E registers
+    case 0xEB: {
+      u16 temp_val = regs->hl;
+      regs->hl = regs->de;
+      regs->de = temp_val;
+      cycles += 5;
       break;
     }
     // CPE / 3 bytes / 17/11 cyles / call if parity is even(1)
@@ -838,16 +895,21 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xF3:
       printf("disable interrupts, preventing the processor from responding to interrupt requests. \n");
       break;
-    // CP a16 / 
-    case 0xF4:
-      printf(" ");
+    // CP / 3 bytes / 17/11 cycles / - - - - - / Call if plus
+    case 0xF4: {
+      if (regs->s == 0) {
+        CALL(fetch_bytes());
+        cycles += 17;
+      } else {
+        fetch_bytes();
+        cycles += 11;
+      }
       break;
+    }
     // PUSH PSW / 1 byte / 11 cycles / pushes the PSW pair onto the stack
     case 0xF5: { push_register(&(regs->a), &(regs->f)); cycles += 11; break; }
-    //
-    case 0xF6:
-      printf(" ");
-      break;
+    // ORI d8  / 2 bytes / 7 cycles / S AC Z P CA / OR Immediate With Accumulator
+    case 0xF6: { bitwise_OR_register(&(regs->a), fetch_byte(), &(regs->f)); cycles += 7; break; }
     // RST 6 / 1 byte / 11 cycles / jump to n * 8 memory adrees a push pc to the stack
     case 0xF7: { RST(6); cycles += 11; break; }
     // RM / 1 byte / 11/5 cycles / return if minus
