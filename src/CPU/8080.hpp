@@ -14,7 +14,6 @@
 #define TOTAL_BYTES_OF_MEM 65536
 #define PROGRAM_START 0X000
 #define RAM_START 0x2000
-#define VRAM_START 0X2400
 #define MEMORY_END 0x4000
 
 using namespace std;

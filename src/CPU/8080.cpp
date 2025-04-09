@@ -108,7 +108,7 @@ void _8080::draw_instructions() {
 
 void _8080::render() {
   // render all screens
-  screen->render_screen();
+  screen->render_screen(memory);
   fill_background();
   draw_instructions();
   regs->render_regs();
@@ -162,8 +162,8 @@ void _8080::run() {
     render();
 
     // for debugging
-    cout << "Press any key to continue...";
-    cin.get();
+    // cout << "Press any key to continue...";
+    // cin.get();
     u8 opcode = fetch_byte();
     execute_instruction(opcode);
     // cout << hex << ((high << 8) | low) << endl;
