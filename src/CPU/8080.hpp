@@ -15,6 +15,8 @@
 #define PROGRAM_START 0X000
 #define RAM_START 0x2000
 #define MEMORY_END 0x4000
+#define INSTRUCTION_CUTTOFF 0x1A90
+#define WATCHDOG 6
 
 using namespace std;
 

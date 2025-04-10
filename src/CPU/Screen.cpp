@@ -18,21 +18,22 @@ Screen::Screen() {
   SDL_GetWindowPosition(window, &window_x, &window_y);
   SDL_SetWindowPosition(window, window_x * 1.5, window_y);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-  texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PIXELS_PER_ROW, PIXELS_PER_COLUMN);
+  texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, NUM_OF_COLUMNS, NUM_OF_ROWS);
 }
 
 int Screen::determine_pixel_color(int bit, int y) {
   if (bit == 0) {
     return BACKGROUND_COLOR;
-  }
-  if (y <= SPACESHIP_CUTOFF) {
-    return SPACESHIP;
-  } else if (y <= SHIELDS_CUTOFF && y < ) {
-      return SHIELDS;
-  } else if (y <= ENEMIES_CUTOFF) {
-      return ENEMIES;
   } else {
+    if (y <= TOP_CUTOFF) {
       return TOP_SCREEN;
+    } else if (y > TOP_CUTOFF and y <= ENEMIES_CUTOFF) {
+      return ENEMIES;
+    } else if (y > ENEMIES_CUTOFF and y <= SHIELDS_CUTOFF) {
+      return SHIELDS;
+    } else {
+      return SPACESHIP;
+    }
   }
 }
 
@@ -41,22 +42,21 @@ void Screen::change_pixels(u8* memory) {
   int byte_num = 1;
   u8 cur_byte = 0;
   int cur_column = 0;
-  int cur_row = PIXELS_PER_ROW - 1;
+  int cur_row = NUM_OF_ROWS - 1;
   for (uint16_t address = VRAM_START; address <= VRAM_END; address++) {
     cur_byte = memory[address];
-    // mirror over each bit
     for (int i = 0; i < 8; i++) {
       int bit = (cur_byte >> 7) & 1;
       cur_byte = cur_byte << 1;
-      std::cout << "The row is " << cur_row << std::endl;
-      std::cout << "The column is " << cur_column << std::endl;
-      std::cout << "The byte number is " << byte_num << std::endl;
-      pixels[cur_row][cur_column] = determine_pixel_color(bit, cur_column, cur_row);
-      cur_row--;
+      // std::cout << "THe current row is " << cur_row - i << std::endl;
+      // std::cout << "The current column is " << cur_column << std::endl;
+      // std::cout<< " byte number " << byte_num << std::endl;
+      pixels[((cur_row - i) * NUM_OF_COLUMNS) + cur_column] = determine_pixel_color(bit, cur_row);
     }
-    if (byte_num % 28 == 0 && byte_num != 0) {
+    cur_row-=8;
+    if (byte_num % BYTES_PER_COLMN == 0 && byte_num != 0) {
       cur_column++;
-      cur_row = PIXELS_PER_ROW - 1;
+      cur_row = NUM_OF_ROWS - 1;
     }
     byte_num++;
   }
@@ -64,7 +64,7 @@ void Screen::change_pixels(u8* memory) {
 
 void Screen::render_screen(u8* memory) {
   change_pixels(memory);
-  SDL_UpdateTexture(texture, NULL, pixels, PIXELS_PER_ROW * sizeof(u32));
+  SDL_UpdateTexture(texture, NULL, pixels, NUM_OF_COLUMNS * sizeof(u32));
   SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer, texture, NULL, NULL);
   SDL_RenderPresent(renderer);

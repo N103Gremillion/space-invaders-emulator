@@ -165,9 +165,16 @@ void _8080::run() {
     // cout << "Press any key to continue...";
     // cin.get();
     u8 opcode = fetch_byte();
+    cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
     execute_instruction(opcode);
+    if (regs->pc > INSTRUCTION_CUTTOFF) {
+      cout << "Program counter exceeded instruciton cutoff " << regs->pc << " > " << INSTRUCTION_CUTTOFF << "! " << endl;
+      while (1) {
+
+      }
+    }
     // cout << hex << ((high << 8) | low) << endl;
-    // SDL_Delay(1000);
+    SDL_Delay(100);
   }
 }
 
@@ -611,7 +618,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC1: { pop_register(&(regs->b), &(regs->c)); cycles += 10; break; }
     // JNZ a16 / 3 bytes / 10 cycles / - - - - - / jump if not zero
     case 0xC2: {
-      if (regs->z == 0) {
+      if (regs->z == 1) {
         JMP();
       } else {
         regs->pc += 2;
@@ -652,7 +659,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC9: { RET(); cycles += 10; break; }
     // JZ a16 / 3 bytes / 10 cycles / - - - - - / jump if zero
     case 0xCA: {
-      if (regs->z == 1) {
+      if (regs->z == 0) {
         JMP(); 
         cycles += 10; 
       } else {
@@ -705,7 +712,12 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     }
     // OUT d8 / 2 bytes / 10 cycles / 
-    case 0XD3: {}
+    case 0XD3: { 
+      if (fetch_byte() == 6) {
+      }
+      cycles += 10;
+      break;
+    }
     // CNC / 3 bytes / 17/11 cycles / - - - - - / Call if not carry
     case 0xD4: {
       if (regs->ca == 0) {

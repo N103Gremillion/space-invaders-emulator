@@ -5,9 +5,11 @@
 #include <cstdint>
 #include <iostream>
 
-#define TOTAL_PIXELS (224 * 256)
-#define PIXELS_PER_ROW 224
-#define PIXELS_PER_COLUMN 256
+#define TOTAL_PIXELS (256 * 224)
+#define NUM_OF_COLUMNS 224
+#define NUM_OF_ROWS 256
+#define BYTES_PER_COLMN 32
+#define BYTES_PER_ROW 28
 #define SCREEN_SCALER 2
 #define VRAM_START 0x2400
 #define VRAM_END 0x3FFF
@@ -31,8 +33,8 @@ class Screen {
     // pixels
     int pixel_w = 1 * SCREEN_SCALER;
     int pixel_h = 1 * SCREEN_SCALER;
-    int window_w = PIXELS_PER_ROW * SCREEN_SCALER;
-    int window_h = PIXELS_PER_COLUMN * SCREEN_SCALER;
+    int window_w = NUM_OF_COLUMNS* SCREEN_SCALER;
+    int window_h = NUM_OF_ROWS * SCREEN_SCALER;
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     Screen();
