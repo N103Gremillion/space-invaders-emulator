@@ -38,7 +38,7 @@ int Screen::determine_pixel_color(int bit, int y) {
 }
 
 // note: pixles are draw from bottom left vertially from VRAM
-void Screen::change_pixels(u8* memory) {
+void Screen::change_pixels(u8* memory, _8080* cpu) {
   int byte_num = 1;
   u8 cur_byte = 0;
   int cur_column = 0;
@@ -58,12 +58,20 @@ void Screen::change_pixels(u8* memory) {
       cur_column++;
       cur_row = NUM_OF_ROWS - 1;
     }
+    // trigger interupt when you hit the middle of the screen
+    if (byte_num == 96) {
+      cpu->execute_interrupt(HALF_INTERRUPT);
+    }
+    // trigger interupt at end of rendering screen
+    if (byte_num == 224) {
+      cpu->execute_interrupt(FULL_INTERRUPT);
+    }
     byte_num++;
   }
 }
 
-void Screen::render_screen(u8* memory) {
-  change_pixels(memory);
+void Screen::render_screen(u8* memory, _8080* cpu) {
+  change_pixels(memory, cpu);
   SDL_UpdateTexture(texture, NULL, pixels, NUM_OF_COLUMNS * sizeof(u32));
   SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer, texture, NULL, NULL);

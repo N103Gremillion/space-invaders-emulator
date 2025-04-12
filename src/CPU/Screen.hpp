@@ -1,6 +1,7 @@
 #ifndef SCREEN_HPP
 #define SCREEN_HPP
 
+#include "8080.hpp"
 #include <SDL2/SDL.h>
 #include <cstdint>
 #include <iostream>
@@ -28,6 +29,8 @@
 using u8 = std::uint8_t;
 using u32 = std::uint32_t;
 
+class _8080;
+
 class Screen {
   public:
     // pixels
@@ -40,8 +43,8 @@ class Screen {
     Screen();
     ~Screen();
     int determine_pixel_color(int bit, int y);
-    void change_pixels(u8* memory);
-    void render_screen(u8* memory);
+    void change_pixels(u8* memory, _8080* cpu);
+    void render_screen(u8* memory, _8080* cpu);
 
   private:
     SDL_Texture* texture = nullptr;  

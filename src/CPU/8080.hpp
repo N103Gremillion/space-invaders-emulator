@@ -16,9 +16,26 @@
 #define RAM_START 0x2000
 #define MEMORY_END 0x4000
 #define INSTRUCTION_CUTTOFF 0x1A90
-#define WATCHDOG 6
+
+// input ports
+#define INP0 0x00
+#define INP1 0x01
+#define INP2 0x02
+#define SHFT_IN 0x03
+
+// output ports
+#define SHFTAMNT 0X02
+#define SOUND1 0x03
+#define SHFT_DATA 0x04
+#define SOUND2 0x05
+#define WATCHDOG 0X06
+
+#define HALF_INTERRUPT 0xCF
+#define FULL_INTERRUPT 0xD7
 
 using namespace std;
+
+class Screen;
 
 // size is either 8, 16 or 24 depending on the instruction size
 string get_hex_string(int num);
@@ -34,6 +51,12 @@ enum Operation {
     COMP // comparison
 };
 
+// port types
+enum PortType {
+    OUT,
+    IN
+};
+
 class _8080 {
     private:
         // screen is the game screen
@@ -45,6 +68,7 @@ class _8080 {
         SDL_Window* window; 
         SDL_Renderer* renderer;
         TTF_Font* font;
+        bool interrupt_enabled = true;
         void render();
         void fill_background();
         void draw_instructions();
@@ -68,7 +92,8 @@ class _8080 {
         void CALL(u16 memory_address); // (SP-1)<-PC.hi;(SP-2)<-PC.lo;SP<-SP-2;PC=adr
         void JMP(); // jump to next 16 bytes in memory
         void RST(u8 address); // pushes the contents of the pc on the stack and then jumps to a specific memory location specified by the
-        
+        void handle_io(u8 port_num, PortType type, u8 value); // given the port number it can excute appropiate interupt
+
     public:
         Registers* regs;
         u8* memory;
@@ -81,6 +106,7 @@ class _8080 {
         int check_parity_flag(u16 num); // return value of parity flag 
         int check_carry_flag(u8 num, u8 num2, Operation operation);
         int check_carry_flag(u16 num, u16 num2, Operation operation);
+        void execute_interrupt(int interupt_type);
         _8080();
         ~_8080();
 };

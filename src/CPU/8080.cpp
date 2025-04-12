@@ -108,7 +108,7 @@ void _8080::draw_instructions() {
 
 void _8080::render() {
   // render all screens
-  screen->render_screen(memory);
+  screen->render_screen(memory, this);
   fill_background();
   draw_instructions();
   regs->render_regs();
@@ -713,9 +713,8 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // OUT d8 / 2 bytes / 10 cycles / 
     case 0XD3: { 
-      if (fetch_byte() == 6) {
-      }
-      cycles += 10;
+      u8 port = fetch_byte();    
+      handle_io(port, OUT, regs->a);   
       break;
     }
     // CNC / 3 bytes / 17/11 cycles / - - - - - / Call if not carry
@@ -904,9 +903,7 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     }
     // DI (dissable interupts)
-    case 0xF3:
-      printf("disable interrupts, preventing the processor from responding to interrupt requests. \n");
-      break;
+    case 0xF3: { interrupt_enabled = false; cycles += 4; break; }
     // CP / 3 bytes / 17/11 cycles / - - - - - / Call if plus
     case 0xF4: {
       if (regs->s == 0) {
@@ -947,10 +944,8 @@ void _8080::execute_instruction(u8 opcode) {
       }
       break;
     }
-    //
-    case 0xFB:
-      printf(" ");
-      break;
+    //EI (enable interupts) / 4 cycles
+    case 0xFB: { interrupt_enabled = true; cycles += 4; break; }
     // CM / 3 bytes / 17/11 cyles / call if minus (sign bit = 1)
     case 0xFC : { 
       if (regs->s){
@@ -1179,3 +1174,46 @@ int _8080::check_carry_flag(u16 num, u16 num2, Operation operation) {
   return carry;
 }
 
+void _8080::handle_io(u8 port_num, PortType type, u8 value) {
+  if (!interrupt_enabled) {
+    return;
+  }
+
+  // input ports
+  if (type == IN) {
+    switch (port_num)
+    {
+      case INP0:
+        break;
+      case INP1:
+        break;
+      case INP2:
+        break;
+      case SHFT_IN:
+        break;
+    }
+  }
+
+  // output ports
+  if (type == OUT) {
+    switch (port_num) {
+       case SHFTAMNT:
+        break;
+      case SOUND1:
+        break;
+      case SHFT_DATA:
+        break;
+      case SOUND2:
+        break;
+      case WATCHDOG:
+        break;
+    }
+  }
+  return; 
+}
+
+void _8080::execute_interrupt(int opcode) {
+  if (interrupt_enabled) {
+    execute_instruction(opcode);
+  }
+}
