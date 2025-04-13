@@ -17,6 +17,8 @@ _8080::_8080() {
   SDL_Init(SDL_INIT_VIDEO);
 
   memory = (u8*) malloc(sizeof(u8) * TOTAL_BYTES_OF_MEM);
+  memset(memory, 0, TOTAL_BYTES_OF_MEM);
+
   regs = new Registers();
   screen = new Screen();
   window = SDL_CreateWindow("Instructions", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,  window_w, window_h, SDL_WINDOW_SHOWN);
@@ -108,7 +110,7 @@ void _8080::draw_instructions() {
 
 void _8080::render() {
   // render all screens
-  screen->render_screen(memory, this);
+  screen->render_screen(this);
   fill_background();
   draw_instructions();
   regs->render_regs();
@@ -162,8 +164,8 @@ void _8080::run() {
     render();
 
     // for debugging
-    cout << "Press any key to continue...";
-    cin.get();
+    // cout << "Press any key to continue...";
+    // cin.get();
 
     if (!halted) {
       if (regs->pc == 0x0000) {

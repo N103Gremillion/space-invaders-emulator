@@ -43,8 +43,8 @@ class Screen {
     Screen();
     ~Screen();
     int determine_pixel_color(int bit, int y);
-    void change_pixels(u8* memory, _8080* cpu);
-    void render_screen(u8* memory, _8080* cpu);
+    void change_pixels(_8080* cpu);
+    void render_screen(_8080* cpu);
 
   private:
     SDL_Texture* texture = nullptr;  

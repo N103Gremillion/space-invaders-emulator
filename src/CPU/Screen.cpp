@@ -38,13 +38,14 @@ int Screen::determine_pixel_color(int bit, int y) {
 }
 
 // note: pixles are draw from bottom left vertially from VRAM
-void Screen::change_pixels(u8* memory, _8080* cpu) {
+void Screen::change_pixels(_8080* cpu) {
+  printf("PC: 0x%04X\n", cpu->regs->pc);
   int byte_num = 1;
   u8 cur_byte = 0;
   int cur_column = 0;
   int cur_row = NUM_OF_ROWS - 1;
   for (uint16_t address = VRAM_START; address <= VRAM_END; address++) {
-    cur_byte = memory[address];
+    cur_byte = cpu->memory[address];
     for (int i = 0; i < 8; i++) {
       int bit = (cur_byte >> 7) & 1;
       cur_byte = cur_byte << 1;
@@ -70,8 +71,8 @@ void Screen::change_pixels(u8* memory, _8080* cpu) {
   }
 }
 
-void Screen::render_screen(u8* memory, _8080* cpu) {
-  change_pixels(memory, cpu);
+void Screen::render_screen(_8080* cpu) {
+  change_pixels(cpu);
   SDL_UpdateTexture(texture, NULL, pixels, NUM_OF_COLUMNS * sizeof(u32));
   SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer, texture, NULL, NULL);
