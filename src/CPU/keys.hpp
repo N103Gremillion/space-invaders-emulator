@@ -15,6 +15,7 @@ using namespace std;
 #define D 100
 #define P 112
 #define S 115
+#define I 105
 #define LEFT_ARROW 1073741904
 #define RIGHT_ARROW 1073741903
 
@@ -22,7 +23,14 @@ using namespace std;
 #define LEFT_ARROW_INDEX 0
 #define RIGHT_ARROW_INDEX 1
 
+#define A_KEY 0x0
+#define D_KEY 0x1
+#define SPACE_KEY 0x2
+#define INSERT_COIN 0x3 // (I)
+#define NUM_INPUTS 0x4 // len of inputs
+
 extern bool keys[116];
+extern bool inputs[NUM_INPUTS];
 
 void handle_key_press(int keycode);
 void handle_key_release(int keycode);

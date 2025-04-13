@@ -162,19 +162,30 @@ void _8080::run() {
     render();
 
     // for debugging
-    // cout << "Press any key to continue...";
-    // cin.get();
-    u8 opcode = fetch_byte();
-    cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
-    execute_instruction(opcode);
-    if (regs->pc > INSTRUCTION_CUTTOFF) {
-      cout << "Program counter exceeded instruciton cutoff " << regs->pc << " > " << INSTRUCTION_CUTTOFF << "! " << endl;
-      while (1) {
+    cout << "Press any key to continue...";
+    cin.get();
 
+    if (!halted) {
+      if (regs->pc == 0x0000) {
+        cout<< "Exiting the test"<< endl;
+        exit(1); 
+      }
+      else if (regs->pc == 0x0005) {
+        handleCPMCall();
+      } else {
+        u8 opcode = fetch_byte();
+        // cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
+        execute_instruction(opcode);
+        if (regs->pc > INSTRUCTION_CUTTOFF) {
+          cout << "Program counter exceeded instruciton cutoff " << regs->pc << " > " << INSTRUCTION_CUTTOFF << "! " << endl;
+          while (1) {
+
+          }
+        }
       }
     }
-    // cout << hex << ((high << 8) | low) << endl;
-    SDL_Delay(100);
+  
+    SDL_Delay(0);
   }
 }
 
@@ -195,6 +206,7 @@ u16 _8080::fetch_bytes() {
 
 // check type of instruciotn using opcode and perform instruciton
 void _8080::execute_instruction(u8 opcode) {
+  cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
   switch (opcode) {
     // 00 - 0F
     // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
@@ -325,6 +337,7 @@ void _8080::execute_instruction(u8 opcode) {
       u16 address = fetch_bytes();
       regs->l = memory[address];
       regs->h = memory[address + 1];
+      printf("2a result in %x", regs->hl);
       cycles += 16;
       break;
     }
@@ -494,9 +507,12 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x74: { memory[regs->hl] = regs->h; cycles += 7; break; }
     // MOV M,L / 1 byte / 7 cycles /  moves contents in L into memory location reference by HL
     case 0x75: { memory[regs->hl] = regs->l; cycles += 7; break; }
-    // HLT / 1 byte / 7 cycles / 
-    case 0x76:
+    // HLT / 1 byte / 7 cycles / halts until an interupt occurs
+    case 0x76: {
+      halted = true;  
+      cycles += 7;
       break;
+    }
     // MOV M,A / 1 byte / 7 cycles /  moves contents in A into memory location reference by HL
     case 0x77: { memory[regs->hl] = regs->a; cycles += 7; break; }
     // MOV A,B / 1 byte / 5 cycles / moves B contents into A
@@ -618,7 +634,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC1: { pop_register(&(regs->b), &(regs->c)); cycles += 10; break; }
     // JNZ a16 / 3 bytes / 10 cycles / - - - - - / jump if not zero
     case 0xC2: {
-      if (regs->z == 1) {
+      if (regs->z == 0) {
         JMP();
       } else {
         regs->pc += 2;
@@ -659,7 +675,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC9: { RET(); cycles += 10; break; }
     // JZ a16 / 3 bytes / 10 cycles / - - - - - / jump if zero
     case 0xCA: {
-      if (regs->z == 0) {
+      if (regs->z == 1) {
         JMP(); 
         cycles += 10; 
       } else {
@@ -714,7 +730,8 @@ void _8080::execute_instruction(u8 opcode) {
     // OUT d8 / 2 bytes / 10 cycles / 
     case 0XD3: { 
       u8 port = fetch_byte();    
-      handle_io(port, OUT, regs->a);   
+      handle_io(port, OUT, &(regs->a));   
+      cycles += 10;
       break;
     }
     // CNC / 3 bytes / 17/11 cycles / - - - - - / Call if not carry
@@ -755,6 +772,13 @@ void _8080::execute_instruction(u8 opcode) {
         fetch_bytes();
         cycles += 7;
       }
+      break;
+    }
+    // IN d8 / 2 bytes / 10 cycles / 
+    case 0XDB: { 
+      u8 port = fetch_byte();    
+      handle_io(port, IN, &(regs->a));
+      cycles += 10;
       break;
     }
     // CC / 3 bytes / 17/11 cyles / call if carry
@@ -1073,17 +1097,24 @@ void _8080::push_register(u8* first, u8* second) {
 }
 
 void _8080::RET() {
+  std::cout << "Before RET - SP: " << std::hex << regs->sp << " PC: " << std::hex << regs->pc << std::endl;
   u8 low = memory[regs->sp];
   u8 high = memory[regs->sp + 1];
   regs->pc = ((high << 8) | low);
   regs->sp += 2;
+  std::cout << "After RET - SP: " << std::hex << regs->sp << " PC: " << std::hex << regs->pc << std::endl;
 }
 
 void _8080::CALL(u16 memory_address) {
-  memory[regs->sp - 1] = u8(regs->pc >> 8);
-  memory[regs->sp - 2] = u8(regs->pc);
   regs->sp -= 2;
+  
+  // Store the high and low bytes of the current PC at the new stack locations
+  memory[regs->sp] = u8(regs->pc & 0xFF);         
+  memory[regs->sp + 1] = u8((regs->pc >> 8) & 0xFF);   
   regs->pc = memory_address;
+  std::cout << "CALL to: " << std::hex << memory_address << std::endl;
+  std::cout << "SP after CALL: " << std::hex << regs->sp << std::endl;
+  std::cout << "PC after CALL: " << std::hex << regs->pc << std::endl;
 }
 
 void _8080::JMP() {
@@ -1174,34 +1205,94 @@ int _8080::check_carry_flag(u16 num, u16 num2, Operation operation) {
   return carry;
 }
 
-void _8080::handle_io(u8 port_num, PortType type, u8 value) {
-  if (!interrupt_enabled) {
-    return;
-  }
+uint8_t offset = 0;
+typedef union{
+    struct {
+        uint8_t low_value;
+        uint8_t high_value;
+    };
+    uint16_t value;
+} _shift_register;
 
+_shift_register shift_register;
+
+#define SHIFT_AND_BITS 0b00000111
+
+void _8080::handle_io(u8 port_num, PortType type, u8* a) {
   // input ports
   if (type == IN) {
+    *a = 0;
     switch (port_num)
     {
       case INP0:
         break;
-      case INP1:
+      case INP1: { 
+        // #define CREDIT 0
+        // #define TWOP_START 1
+        // #define ONEP_START 2
+        // #define ALWAYS_ONE 3
+        // #define ONEP_SHOT 4
+        // #define ONEP_LEFT 5
+        // #define ONEP_RIGHT 6
+        // #define NOT_CONNECTED 7
+
+        // uint8_t reg_a = 0;  
+
+        // if (inputs[INSERT_COIN])
+        //     reg_a |= (1 << CREDIT);       
+        // else
+        //     reg_a &= ~(1 << CREDIT);     
+
+        // reg_a &= ~(1 << TWOP_START);      
+
+        // if (inputs[SPACE_KEY])
+        //     reg_a |= (1 << ONEP_START);
+        // else
+        //     reg_a &= ~(1 << ONEP_START);
+
+        // reg_a |= (1 << ALWAYS_ONE);       
+
+        // if (inputs[SPACE_KEY])
+        //     reg_a |= (1 << ONEP_SHOT);
+        // else
+        //     reg_a &= ~(1 << ONEP_SHOT);
+
+        // if (inputs[A_KEY])
+        //     reg_a |= (1 << ONEP_LEFT);
+        // else
+        //     reg_a &= ~(1 << ONEP_LEFT);
+
+        // if (inputs[D_KEY])
+        //     reg_a |= (1 << ONEP_RIGHT);
+        // else
+        //     reg_a &= ~(1 << ONEP_RIGHT);
+
+        // reg_a &= ~(1 << NOT_CONNECTED);   
+
+        // *a = reg_a; 
         break;
+      }
       case INP2:
         break;
-      case SHFT_IN:
+      case SHFT_IN: {
+        *a = (((shift_register.high_value << 8) | shift_register.low_value) << offset) >> 8;
         break;
+      }
     }
   }
 
   // output ports
   if (type == OUT) {
+    u8 value = *a;
     switch (port_num) {
-       case SHFTAMNT:
+      case SHFTAMNT:
+        offset = value & SHIFT_AND_BITS;
         break;
       case SOUND1:
         break;
       case SHFT_DATA:
+        shift_register.low_value = shift_register.high_value;
+        shift_register.high_value = value;
         break;
       case SOUND2:
         break;
@@ -1212,8 +1303,31 @@ void _8080::handle_io(u8 port_num, PortType type, u8 value) {
   return; 
 }
 
+void _8080::handleCPMCall() {
+  switch (regs->c) {
+      case 0x02:
+          std::cout << static_cast<char>(regs->e);
+          break;
+      case 0x09: {
+          uint16_t addr = (regs->d << 8) | regs->e;
+          while (memory[addr] != '$') {
+              std::cout << static_cast<char>(memory[addr]);
+              addr++;
+          }
+          break;
+      }
+      default:
+          std::cerr << "Unhandled CP/M call: " << std::hex << int(regs->c) << std::endl;
+  }
+
+  // Simulate RET
+  regs->pc = (memory[regs->sp + 1] << 8) | memory[regs->sp];
+  regs->sp += 2;
+}
+
 void _8080::execute_interrupt(int opcode) {
   if (interrupt_enabled) {
+    halted = false;           
     execute_instruction(opcode);
   }
 }

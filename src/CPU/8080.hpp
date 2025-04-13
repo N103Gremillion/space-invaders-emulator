@@ -68,7 +68,8 @@ class _8080 {
         SDL_Window* window; 
         SDL_Renderer* renderer;
         TTF_Font* font;
-        bool interrupt_enabled = true;
+        bool interrupt_enabled = false;
+        bool halted = false;
         void render();
         void fill_background();
         void draw_instructions();
@@ -92,8 +93,8 @@ class _8080 {
         void CALL(u16 memory_address); // (SP-1)<-PC.hi;(SP-2)<-PC.lo;SP<-SP-2;PC=adr
         void JMP(); // jump to next 16 bytes in memory
         void RST(u8 address); // pushes the contents of the pc on the stack and then jumps to a specific memory location specified by the
-        void handle_io(u8 port_num, PortType type, u8 value); // given the port number it can excute appropiate interupt
-
+        void handle_io(u8 port_num, PortType type, u8* a); // given the port number it can excute appropiate interupt
+        void handleCPMCall();
     public:
         Registers* regs;
         u8* memory;
