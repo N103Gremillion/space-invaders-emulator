@@ -39,6 +39,6 @@ void setup_test(_8080* _8080_) {
 int main() {
   _8080* _8080_ = new _8080();
   setup_test(_8080_);
-  _8080_->run();
+  _8080_->run_test();
   return 0;
 }

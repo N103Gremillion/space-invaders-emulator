@@ -10,6 +10,7 @@
 #include "Screen.hpp"
 #include "Registers.hpp"
 #include "instruction_list.hpp"
+#include "log.hpp"
 
 #define TOTAL_BYTES_OF_MEM 65536
 #define PROGRAM_START 0X000
@@ -92,14 +93,16 @@ class _8080 {
         void RET(); // sets the pc = to the top 2 bytes on the stack
         void CALL(u16 memory_address); // (SP-1)<-PC.hi;(SP-2)<-PC.lo;SP<-SP-2;PC=adr
         void JMP(); // jump to next 16 bytes in memory
-        void RST(u8 address); // pushes the contents of the pc on the stack and then jumps to a specific memory location specified by the
+        void RST(u16 address); // pushes the contents of the pc on the stack and then jumps to a specific memory location specified by the
         void handle_io(u8 port_num, PortType type, u8* a); // given the port number it can excute appropiate interupt
         void handleCPMCall();
+        
     public:
         Registers* regs;
         u8* memory;
         void load_rom(const string& file_path, u16 start_address);
         void run();
+        void run_test();
         int check_zero_flag(int num); // return value of zero flag 
         int check_sign_flag(u8 num); // for u8 return value of sign flag
         int check_sign_flag(u16 num); // for u16 return value of sign flag

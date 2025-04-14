@@ -116,6 +116,35 @@ void _8080::render() {
   regs->render_regs();
 }
 
+void _8080::run_test() {
+  log_log();
+
+  while (regs->pc != 0x00) {
+    if (regs->pc == 0x0005) {
+      if (regs->c == 0x02) {
+        log_log_nonewl("%c", regs->e);
+      } 
+      else if (regs->c == 0x09) {
+        while (memory[regs->de] != '$') {
+          log_log_nonewl("%c", memory[regs->de]);
+          regs->de++;
+        }
+      } 
+      else {
+        log_error("Unknown c in test interrupt");
+        exit(1);
+      }
+      RET();
+    }
+
+    u8 opcode = fetch_byte();
+    cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
+    cin.get();
+    execute_instruction(opcode);
+  }
+  log_log();
+}
+
 void _8080::run() {
 
   SDL_Event event;
@@ -168,15 +197,7 @@ void _8080::run() {
     // cin.get();
 
     if (!halted) {
-      if (regs->pc == 0x0000) {
-        cout<< "Exiting the test"<< endl;
-        exit(1); 
-      }
-      else if (regs->pc == 0x0005) {
-        handleCPMCall();
-      } else {
         u8 opcode = fetch_byte();
-        // cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
         execute_instruction(opcode);
         if (regs->pc > INSTRUCTION_CUTTOFF) {
           cout << "Program counter exceeded instruciton cutoff " << regs->pc << " > " << INSTRUCTION_CUTTOFF << "! " << endl;
@@ -184,12 +205,11 @@ void _8080::run() {
 
           }
         }
-      }
     }
-  
-    SDL_Delay(0);
   }
+  SDL_Delay(0);
 }
+
 
 // use pc to get the next byte in memory
 u8 _8080::fetch_byte() {
@@ -208,7 +228,6 @@ u16 _8080::fetch_bytes() {
 
 // check type of instruciotn using opcode and perform instruciton
 void _8080::execute_instruction(u8 opcode) {
-  cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
   switch (opcode) {
     // 00 - 0F
     // NOP / 1 byte / 4 cycles / - - - - - /  nothing instruciton
@@ -1003,6 +1022,7 @@ void _8080::increment_register(u8* reg, u8* flags) {
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
   *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+  *reg += 1;
 }
 
 void _8080::decrement_register(u8* reg, u8* flags) {
@@ -1011,6 +1031,7 @@ void _8080::decrement_register(u8* reg, u8* flags) {
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
   *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+  *reg -= 1;
 }
 
 void _8080::DAD_register(u16* hl, u16 reg_pair, u8* flags) {
@@ -1099,24 +1120,18 @@ void _8080::push_register(u8* first, u8* second) {
 }
 
 void _8080::RET() {
-  std::cout << "Before RET - SP: " << std::hex << regs->sp << " PC: " << std::hex << regs->pc << std::endl;
   u8 low = memory[regs->sp];
   u8 high = memory[regs->sp + 1];
   regs->pc = ((high << 8) | low);
   regs->sp += 2;
-  std::cout << "After RET - SP: " << std::hex << regs->sp << " PC: " << std::hex << regs->pc << std::endl;
 }
 
 void _8080::CALL(u16 memory_address) {
   regs->sp -= 2;
-  
   // Store the high and low bytes of the current PC at the new stack locations
   memory[regs->sp] = u8(regs->pc & 0xFF);         
   memory[regs->sp + 1] = u8((regs->pc >> 8) & 0xFF);   
   regs->pc = memory_address;
-  std::cout << "CALL to: " << std::hex << memory_address << std::endl;
-  std::cout << "SP after CALL: " << std::hex << regs->sp << std::endl;
-  std::cout << "PC after CALL: " << std::hex << regs->pc << std::endl;
 }
 
 void _8080::JMP() {
@@ -1124,9 +1139,13 @@ void _8080::JMP() {
   regs->pc = mem_loc;
 }
 
-void _8080::RST(u8 n) {
+void _8080::RST(u16 n) {
   // save the pc to the stack so it can be retreived later
-  CALL(n * 8);
+  interrupt_enabled = false;
+  regs->sp -= 2;
+  memory[regs->sp + 1] = (regs->pc & 0xFF00) >> 8;
+  memory[regs->sp] = regs->pc & 0x00FF;
+  regs->pc = n * 8;
 }
 
 int _8080::check_sign_flag(u8 num) {
@@ -1229,49 +1248,49 @@ void _8080::handle_io(u8 port_num, PortType type, u8* a) {
       case INP0:
         break;
       case INP1: { 
-        // #define CREDIT 0
-        // #define TWOP_START 1
-        // #define ONEP_START 2
-        // #define ALWAYS_ONE 3
-        // #define ONEP_SHOT 4
-        // #define ONEP_LEFT 5
-        // #define ONEP_RIGHT 6
-        // #define NOT_CONNECTED 7
+        #define CREDIT 0
+        #define TWOP_START 1
+        #define ONEP_START 2
+        #define ALWAYS_ONE 3
+        #define ONEP_SHOT 4
+        #define ONEP_LEFT 5
+        #define ONEP_RIGHT 6
+        #define NOT_CONNECTED 7
 
-        // uint8_t reg_a = 0;  
+        uint8_t reg_a = 0;  
 
-        // if (inputs[INSERT_COIN])
-        //     reg_a |= (1 << CREDIT);       
-        // else
-        //     reg_a &= ~(1 << CREDIT);     
+        if (inputs[INSERT_COIN])
+            reg_a |= (1 << CREDIT);       
+        else
+            reg_a &= ~(1 << CREDIT);     
 
-        // reg_a &= ~(1 << TWOP_START);      
+        reg_a &= ~(1 << TWOP_START);      
 
-        // if (inputs[SPACE_KEY])
-        //     reg_a |= (1 << ONEP_START);
-        // else
-        //     reg_a &= ~(1 << ONEP_START);
+        if (inputs[SPACE_KEY])
+            reg_a |= (1 << ONEP_START);
+        else
+            reg_a &= ~(1 << ONEP_START);
 
-        // reg_a |= (1 << ALWAYS_ONE);       
+        reg_a |= (1 << ALWAYS_ONE);       
 
-        // if (inputs[SPACE_KEY])
-        //     reg_a |= (1 << ONEP_SHOT);
-        // else
-        //     reg_a &= ~(1 << ONEP_SHOT);
+        if (inputs[SPACE_KEY])
+            reg_a |= (1 << ONEP_SHOT);
+        else
+            reg_a &= ~(1 << ONEP_SHOT);
 
-        // if (inputs[A_KEY])
-        //     reg_a |= (1 << ONEP_LEFT);
-        // else
-        //     reg_a &= ~(1 << ONEP_LEFT);
+        if (inputs[A_KEY])
+            reg_a |= (1 << ONEP_LEFT);
+        else
+            reg_a &= ~(1 << ONEP_LEFT);
 
-        // if (inputs[D_KEY])
-        //     reg_a |= (1 << ONEP_RIGHT);
-        // else
-        //     reg_a &= ~(1 << ONEP_RIGHT);
+        if (inputs[D_KEY])
+            reg_a |= (1 << ONEP_RIGHT);
+        else
+            reg_a &= ~(1 << ONEP_RIGHT);
 
-        // reg_a &= ~(1 << NOT_CONNECTED);   
+        reg_a &= ~(1 << NOT_CONNECTED);   
 
-        // *a = reg_a; 
+        *a = reg_a; 
         break;
       }
       case INP2:

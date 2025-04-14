@@ -21,6 +21,8 @@ set (Headers
   ./src/CPU/Screen.hpp
   ./src/CPU/Registers.hpp
   ./src/CPU/instruction_list.hpp
+  ./src/CPU/headers.hpp
+  ./src/CPU/log.hpp
 )
 
 set(Sources
@@ -29,6 +31,7 @@ set(Sources
   ./src/CPU/Screen.cpp
   ./src/CPU/Registers.cpp
   ./src/CPU/instruction_list.cpp
+  ./src/CPU/log.cpp
   ./src/main.cpp
 )
 
