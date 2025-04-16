@@ -2,6 +2,10 @@
 #include <SDL2/SDL.h>
 #include "./CPU/8080.hpp"
 #include "./CPU/Screen.hpp"
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 
 #define ROM_FILE_STRING "./invaders/invaders"
 #define INVADERS_H_START 0x0000
@@ -18,6 +22,17 @@
 #define TEST2_FILE "../cpu_test/8080EXER.COM"
 #define TEST3_FILE "../cpu_test/CPUTEST.COM"
 #define TEST4_FILE "../cpu_test/TST8080.COM"
+
+
+void handle_sigint(int sig) {
+    printf("\n[!] Caught signal %d (Ctrl+C), exiting cleanly.\n", sig);
+    fflush(stdout);
+    exit(0);
+}
+
+void setup_signal_handlers() {
+    signal(SIGINT, handle_sigint);
+}
 
 // note this is indicated by pc but I have this for debugging
 u16 space_invaders_start_address = 0x0000;
@@ -37,6 +52,7 @@ void setup_test(_8080* _8080_) {
 }
 
 int main() {
+  setup_signal_handlers();
   _8080* _8080_ = new _8080();
   setup_test(_8080_);
   _8080_->run_test();

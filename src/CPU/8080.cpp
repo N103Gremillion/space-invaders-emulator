@@ -136,11 +136,12 @@ void _8080::run_test() {
       }
       RET();
     }
-
+    render();
     u8 opcode = fetch_byte();
-    cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
-    cin.get();
+    // cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
+    // cin.get();
     execute_instruction(opcode);
+    SDL_Delay(100);
   }
   log_log();
 }
@@ -358,7 +359,6 @@ void _8080::execute_instruction(u8 opcode) {
       u16 address = fetch_bytes();
       regs->l = memory[address];
       regs->h = memory[address + 1];
-      printf("2a result in %x", regs->hl);
       cycles += 16;
       break;
     }
@@ -1108,9 +1108,13 @@ u16 _8080::pop_stack() {
 }
 
 void _8080::pop_register(u8* first, u8* second) {
+  printf("POP: SP = 0x%04X\n", regs->sp);
+  printf("    -> memory: 0x%02X is, 0x%02X is first\n", memory[regs->sp], memory[regs->sp + 1]);
   *second = memory[regs->sp];
   *first = memory[regs->sp + 1];
+  printf("    -> Popped 0x%02X into second, 0x%02X into first\n", *second, *first);
   regs->sp += 2;
+  printf("    -> SP after POP = 0x%04X\n", regs->sp);
 }
 
 void _8080::push_register(u8* first, u8* second) {
@@ -1119,18 +1123,24 @@ void _8080::push_register(u8* first, u8* second) {
   regs->sp -= 2;
 }
 
+
 void _8080::RET() {
   u8 low = memory[regs->sp];
   u8 high = memory[regs->sp + 1];
-  regs->pc = ((high << 8) | low);
+  u16 return_address = ((high << 8) | low);
+  regs->pc = return_address;
   regs->sp += 2;
 }
 
 void _8080::CALL(u16 memory_address) {
   regs->sp -= 2;
-  // Store the high and low bytes of the current PC at the new stack locations
-  memory[regs->sp] = u8(regs->pc & 0xFF);         
-  memory[regs->sp + 1] = u8((regs->pc >> 8) & 0xFF);   
+
+  u8 ret_low = u8(regs->pc & 0xFF);
+  u8 ret_high = u8((regs->pc >> 8) & 0xFF);
+
+  memory[regs->sp] = ret_low;       // Low byte
+  memory[regs->sp + 1] = ret_high;  // High byte
+
   regs->pc = memory_address;
 }
 
