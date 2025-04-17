@@ -34,6 +34,8 @@
 #define HALF_INTERRUPT 0xCF
 #define FULL_INTERRUPT 0xD7
 
+#define OVERFLOW 0xFF
+
 using namespace std;
 
 class Screen;
@@ -108,8 +110,7 @@ class _8080 {
         int check_sign_flag(u16 num); // for u16 return value of sign flag
         int check_auxilary_flag(u8 num, u16 res); // return value of aux flag after a given operation
         int check_parity_flag(u16 num); // return value of parity flag 
-        int check_carry_flag(u8 num, u8 num2, Operation operation);
-        int check_carry_flag(u16 num, u16 num2, Operation operation);
+        int check_carry_flag(u8 initial, u16 result);
         void execute_interrupt(int interupt_type);
         _8080();
         ~_8080();

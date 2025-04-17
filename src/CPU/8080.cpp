@@ -136,12 +136,12 @@ void _8080::run_test() {
       }
       RET();
     }
-    render();
+    // render();
     u8 opcode = fetch_byte();
-    // cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
+    cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
     // cin.get();
     execute_instruction(opcode);
-    SDL_Delay(100);
+    SDL_Delay(1);
   }
   log_log();
 }
@@ -247,7 +247,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x06: { regs->b = fetch_byte(); cycles += 7; break; }
     // RLC / 1 byte / 4 cycles / - - - - C / (Rotate left through carry) / shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value
     case 0x07: { 
-      regs->ca = check_carry_flag(regs->a, 0, RLC); 
+      regs->ca = ((regs->a & 0x80) == 0x80) ? 1 : 0;
       regs->a = (regs->a << 1) | regs->ca; 
       cycles += 4; 
       break; 
@@ -336,13 +336,17 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x27: {
       u8 ls_4bits = (regs->a & 0x0F);
       if ((ls_4bits > 9) || (regs->ac == 1)) {
-        regs->ac = check_auxilary_flag(regs->a, (regs->a + 6));
-        regs->a += 6;
+        regs->ac = 1;
+        regs->a += 0X06;
+      } else {
+        regs->ac = 0;
       }
-      u8 ms_4bits = (regs->a >> 4);
-      if ((ms_4bits > 9) || (regs->ca == 1)) {
-        regs->ca = check_carry_flag(regs->a, 0x60, ADD);
+      u8 ms_4bits = ((regs->a & 0xF0) >> 4);
+      if ((ms_4bits > 0x9) || (regs->ca == 1)) {
+        regs->ca = 1;
         regs->a += 0x60;
+      } else {
+        regs->ca = 0;
       }
       regs->s = check_sign_flag(regs->a);
       regs->z = check_zero_flag(regs->a);
@@ -1035,14 +1039,16 @@ void _8080::decrement_register(u8* reg, u8* flags) {
 }
 
 void _8080::DAD_register(u16* hl, u16 reg_pair, u8* flags) {
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(hl), reg_pair, ADD) << CARRY_POS); // carry
-  *(hl) = *(hl) + reg_pair;
+  u16 inital = *hl;
+  u32 result = (u32) inital + reg_pair;
+  *hl = result;
+  *flags = (*flags & 0xFE) | ((check_carry_flag(inital >> 8, result >> 8) << CARRY_POS)); // carry
 }
 
 // note: the a is the reg that the result is stored in
 void _8080::add_register(u8* a, u8 val, u8* flags) {
-  u8 res = *(a) + val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, ADD) << CARRY_POS); // carry
+  u16 res = *(a) + val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
   *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
@@ -1051,8 +1057,8 @@ void _8080::add_register(u8* a, u8 val, u8* flags) {
 }
 
 void _8080::subtract_register(u8* a, u8 val, u8* flags) {
-  u8 res = *(a) - val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, SUBTRACT) << CARRY_POS); // carry
+  u16 res = *(a) - val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
   *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
@@ -1061,8 +1067,8 @@ void _8080::subtract_register(u8* a, u8 val, u8* flags) {
 }
 
 void _8080::bitwise_AND_register(u8* a, u8 val, u8* flags) {
-  u8 res = *(a) & val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, AND) << CARRY_POS); // carry
+  u16 res = *(a) & val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
   *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
@@ -1071,8 +1077,8 @@ void _8080::bitwise_AND_register(u8* a, u8 val, u8* flags) {
 }
 
 void _8080::bitwise_XOR_register(u8* a, u8 val, u8* flags) {
-  u8 res = *(a) ^ val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, XOR) << CARRY_POS); // carry
+  u16 res = *(a) ^ val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
   *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
@@ -1081,8 +1087,8 @@ void _8080::bitwise_XOR_register(u8* a, u8 val, u8* flags) {
 }
 
 void _8080::bitwise_OR_register(u8* a, u8 val, u8* flags) {
-  u8 res = *(a) | val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, OR) << CARRY_POS); // carry
+  u16 res = *(a) | val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
   *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
@@ -1092,8 +1098,8 @@ void _8080::bitwise_OR_register(u8* a, u8 val, u8* flags) {
 
 void _8080::compare_register(u8* a, u8 val, u8* flags) {
   // note : comparison is done using subtraction
-  u8 res = *(a) - val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), val, COMP) << CARRY_POS); // carry
+  u16 res = *(a) - val;
+  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
   *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
   *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
   *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
@@ -1108,13 +1114,13 @@ u16 _8080::pop_stack() {
 }
 
 void _8080::pop_register(u8* first, u8* second) {
-  printf("POP: SP = 0x%04X\n", regs->sp);
-  printf("    -> memory: 0x%02X is, 0x%02X is first\n", memory[regs->sp], memory[regs->sp + 1]);
+  // printf("POP: SP = 0x%04X\n", regs->sp);
+  // printf("    -> memory: 0x%02X is, 0x%02X is first\n", memory[regs->sp], memory[regs->sp + 1]);
   *second = memory[regs->sp];
   *first = memory[regs->sp + 1];
-  printf("    -> Popped 0x%02X into second, 0x%02X into first\n", *second, *first);
+  // printf("    -> Popped 0x%02X into second, 0x%02X into first\n", *second, *first);
   regs->sp += 2;
-  printf("    -> SP after POP = 0x%04X\n", regs->sp);
+  // printf("    -> SP after POP = 0x%04X\n", regs->sp);
 }
 
 void _8080::push_register(u8* first, u8* second) {
@@ -1191,50 +1197,29 @@ int _8080::check_parity_flag(u16 num) {
   return (count % 2 == 0) ? 1 : 0;
 }
 
-int _8080::check_carry_flag(u8 num, u8 num2, Operation operation) {
-  int carry = 0;
-
-  switch (operation) {
-    case ADD:
-      carry = (num + num2) > 0xFF ? 1 : 0;
-      break;
-    case SUBTRACT:
-      carry = (num < num2) ? 1 : 0;
-      break;
-    case RLC:
-      carry = (num & 0x80) >> 7;
-      break;
-    case AND:
-      carry = 0;
-      break;
-    case XOR:
-      carry = 0;
-      break;
-    case OR:
-      carry = 0;
-      break;
-    case COMP:
-      carry = (num < num2) ? 1 : 0;
-      break;
-  }
-
-  return carry;
+int _8080::check_carry_flag(u8 initial, u16 result) {
+  // Check if the result indicates a carry has occurred
+    if (result > OVERFLOW) { // Check if carry occurred 
+        return 1;  // Set the carry flag
+    } else {
+        return 0;  // Clear the carry flag
+    }
 }
 
-int _8080::check_carry_flag(u16 num, u16 num2, Operation operation) {
-  int carry = 0;
+// int _8080::check_carry_flag(u16 num, u16 num2, Operation operation) {
+//   int carry = 0;
 
-  switch (operation) {
-    case ADD:
-      carry = (num + num2) > 0xFFFF ? 1 : 0;
-      break;
-    case SUBTRACT:
-      carry = (num >= num2) ? 1 : 0;
-      break;
-  }
+//   switch (operation) {
+//     case ADD:
+//       carry = (num + num2) > 0xFFFF ? 1 : 0;
+//       break;
+//     case SUBTRACT:
+//       carry = (num >= num2) ? 1 : 0;
+//       break;
+//   }
 
-  return carry;
-}
+//   return carry;
+// }
 
 uint8_t offset = 0;
 typedef union{
