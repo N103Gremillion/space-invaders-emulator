@@ -19,10 +19,10 @@
 #define INVADERS_E_FILE "../invaders/invaders.e"
 
 #define TEST1_FILE "../cpu_tests/8080EXM.COM"
-#define TEST2_FILE "../cpu_test/8080EXER.COM"
-#define TEST3_FILE "../cpu_test/CPUTEST.COM"
-#define TEST4_FILE "../cpu_test/TST8080.COM"
-
+#define TEST2_FILE "../cpu_tests/8080EXER.COM"
+#define TEST3_FILE "../cpu_tests/CPUTEST.COM"
+#define TEST4_FILE "../cpu_tests/TST8080.COM"
+#define TEST5_FILE "../cpu_tests/8080PRE.COM"
 
 void handle_sigint(int sig) {
     printf("\n[!] Caught signal %d (Ctrl+C), exiting cleanly.\n", sig);
@@ -47,7 +47,7 @@ void setup_space_invaders(_8080* _8080_) {
 
 void setup_test(_8080* _8080_) {
   // Load the cpudiag.bin file at 0x100
-  _8080_->load_rom(TEST1_FILE, 0x100);
+  _8080_->load_rom(TEST4_FILE, 0x100);
   _8080_->regs->pc = 0x0100;
 }
 

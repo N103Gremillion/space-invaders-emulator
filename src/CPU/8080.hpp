@@ -105,8 +105,7 @@ class _8080 {
         void load_rom(const string& file_path, u16 start_address);
         void run();
         void run_test();
-        int check_zero_flag(int num); // return value of zero flag 
-        int check_sign_flag(u8 num); // for u8 return value of sign flag
+        int check_zero_flag(u16 res); // return value of zero flag 
         int check_sign_flag(u16 num); // for u16 return value of sign flag
         int check_auxilary_flag(u8 num, u16 res); // return value of aux flag after a given operation
         int check_parity_flag(u16 num); // return value of parity flag 
