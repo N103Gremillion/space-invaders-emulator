@@ -34,6 +34,9 @@
 #define HALF_INTERRUPT 0xCF
 #define FULL_INTERRUPT 0xD7
 
+#define CYCLES_PER_SECOND 2000000
+#define CYCLES_PER_FRAME CYCLES_PER_SECOND / 60
+
 #define OVERFLOW 0xFF
 
 using namespace std;

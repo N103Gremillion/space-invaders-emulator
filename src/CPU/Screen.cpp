@@ -59,14 +59,6 @@ void Screen::change_pixels(_8080* cpu) {
       cur_column++;
       cur_row = NUM_OF_ROWS - 1;
     }
-    // trigger interupt when you hit the middle of the screen
-    if (byte_num == 96) {
-      cpu->execute_interrupt(HALF_INTERRUPT);
-    }
-    // trigger interupt at end of rendering screen
-    if (byte_num == 224) {
-      cpu->execute_interrupt(FULL_INTERRUPT);
-    }
     byte_num++;
   }
 }

@@ -118,7 +118,7 @@ void _8080::render() {
 
 void _8080::run_test() {
   log_log();
-
+  int instruction_count = 0;
   while (regs->pc != 0x00) {
     if (regs->pc == 0x0005) {
       if (regs->c == 0x02) {
@@ -136,14 +136,33 @@ void _8080::run_test() {
       }
       RET();
     }
-    // render();
+
+    if (instruction_count > 100000){
+      render();
+      instruction_count = 0;
+    }
     u8 opcode = fetch_byte();
+    // printf("PC: 0x%04X\n", regs->pc);
     // cout << "opcode is 0x" << hex << setw(2) << setfill('0') << static_cast<int>(opcode) << endl;
     // cin.get();
     execute_instruction(opcode);
-    SDL_Delay(1);
+    instruction_count ++;
+    // SDL_Delay(0);
   }
   log_log();
+}
+
+#define TICK_INTERVAL 15
+static u32 next_time;
+
+uint32_t time_left() {
+    u32 now;
+
+    now = SDL_GetTicks();
+    if (next_time <= now)
+        return 0;
+    else
+        return next_time - now;
 }
 
 void _8080::run() {
@@ -151,11 +170,31 @@ void _8080::run() {
   SDL_Event event;
   int open_windows = 3;
   bool running = true;
+  next_time = SDL_GetTicks() + TICK_INTERVAL;
 
   while (running) {
+    cycles = 0;
+
+    while (cycles < CYCLES_PER_FRAME) {
+      if (!halted) {
+        u8 opcode = fetch_byte();
+        execute_instruction(opcode);
+      }
+    }
+    execute_interrupt(HALF_INTERRUPT);
+
+    while (cycles < CYCLES_PER_FRAME * 2) {
+      if (!halted) {
+        u8 opcode = fetch_byte();
+        execute_instruction(opcode);
+      }
+    }
+    execute_interrupt(FULL_INTERRUPT);
+
+    render();
 
     // event handling
-    while( SDL_PollEvent( &event ) ){
+    if ( SDL_PollEvent( &event ) ){
       switch( event.type ){
         case SDL_QUIT:  
           running = false;
@@ -189,26 +228,9 @@ void _8080::run() {
           break;
       }
     }
-
-    // graphics handling
-    render();
-
-    // for debugging
-    // cout << "Press any key to continue...";
-    // cin.get();
-
-    if (!halted) {
-        u8 opcode = fetch_byte();
-        execute_instruction(opcode);
-        if (regs->pc > INSTRUCTION_CUTTOFF) {
-          cout << "Program counter exceeded instruciton cutoff " << regs->pc << " > " << INSTRUCTION_CUTTOFF << "! " << endl;
-          while (1) {
-
-          }
-        }
-    }
+    SDL_Delay(time_left());
+    next_time += TICK_INTERVAL;
   }
-  SDL_Delay(0);
 }
 
 
@@ -565,7 +587,17 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV A,L / 1 byte / 5 cyles / moves contents of L into A
     case 0x7D: { regs->a = regs->l; cycles += 5; break; }
     // MOV A,M / 1 byte / 7 cyles / moves contents memory[HL] into A
-    case 0x7E: { regs->a = memory[regs->hl]; cycles += 7; break; }
+    case 0x7E: { // MOV A, M or LD A, (HL)
+      u16 addr = regs->hl;
+      regs->a = memory[addr];
+      if (addr >= 0x2400 && addr <= 0x3FFF) {
+          // Optional debug message
+          std::cout << "Reading from VRAM: addr=0x" << std::hex << addr 
+                    << " value=0x" << std::hex << (int)regs->a << std::endl;
+      }
+      cycles += 7;
+      break;
+    }
     // MOV A,A / 1 byte / 5 cyles / moves contents of A into A
     case 0x7F: { regs->a = regs->a; cycles += 5; break; }
 
@@ -816,6 +848,7 @@ void _8080::execute_instruction(u8 opcode) {
     // IN d8 / 2 bytes / 10 cycles / 
     case 0XDB: { 
       u8 port = fetch_byte();    
+      std::cout << "[DEBUG] IN instruction executed. Port: " << (int)port << "\n";
       handle_io(port, IN, &(regs->a));
       cycles += 10;
       break;
@@ -1204,7 +1237,6 @@ int _8080::check_auxilary_flag(u8 initial, u16 res) {
 
 
 int _8080::check_parity_flag(u16 num) {
-  num = (u8) num;
   int count = 0;
   while (num > 0) {
     count += num & 0x1;
@@ -1255,6 +1287,8 @@ void _8080::handle_io(u8 port_num, PortType type, u8* a) {
 
         uint8_t reg_a = 0;  
 
+         std::cout << "Checking input states..." << std::endl;
+
         if (inputs[INSERT_COIN])
             reg_a |= (1 << CREDIT);       
         else
@@ -1301,6 +1335,7 @@ void _8080::handle_io(u8 port_num, PortType type, u8* a) {
   // output ports
   if (type == OUT) {
     u8 value = *a;
+
     switch (port_num) {
       case SHFTAMNT:
         offset = value & SHIFT_AND_BITS;
@@ -1344,7 +1379,7 @@ void _8080::handleCPMCall() {
 
 void _8080::execute_interrupt(int opcode) {
   if (interrupt_enabled) {
-    halted = false;           
+    halted = false;          
     execute_instruction(opcode);
   }
 }
