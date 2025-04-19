@@ -452,7 +452,7 @@ void _8080::execute_instruction(u8 opcode) {
 
     // 40 - 4F ////////////////////////////////////////////////////
     // MOV B,B / 1 byte / 5 cycles / - - - - - / moves B reg into B
-    case 0x40: { cycles += 5; break; }
+    case 0x40: {cycles += 5; break; }
     // MOV B, C / 1 byte / 5 cycles / - - - - - / moves C reg val int B
     case 0x41: { regs->b = regs->c; cycles += 5; break; }
     // MOV B, D / 1 byte / 5 cycles / - - - - - / moves D reg val int B
@@ -464,7 +464,7 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV B, L / 1 byte / 5 cycles / - - - - - / moves L reg val int B
     case 0x45: { regs->b = regs->l; cycles += 5; break; }
     // MOV B, M / 1 byte / 7 cycles / - - - - - / moves value form mem locatioin pointed to by HL into B
-    case 0x46: { regs->b = memory[(regs->h << 8) | regs->l]; cycles += 7; break; }
+    case 0x46: { mov_m(&regs->b,false); cycles += 7; break; }
     // MOV B, A / 1 byte / 5 cycles / - - - - - / moves A reg val into B
     case 0x47: { regs->b = regs->a; cycles += 5; break; }
     // MOV C, B / 1 byte / 5 cycles / - - - - - / moves B reg val into C
@@ -480,7 +480,7 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV C, L / 1 byte / 5 cycles / - - - - - / moves L reg val into C
     case 0x4D: { regs->c = regs->l; cycles += 5; break; }
     // MOV C, M / 1 byte / 7 cycles / - - - - - / moves value in memory location pointed to by HL reg val into C
-    case 0x4E: { regs->c = memory[(regs->h << 8) | regs->l]; cycles += 7; break; }
+    case 0x4E: { mov_m(&regs->c,false); cycles += 7; break; }
     // MOV C, A / 1 byte / 5 cycles / - - - - - / moves A reg val into C
     case 0x4F: { regs->c = regs->a; cycles += 5; break; }
 
@@ -499,7 +499,7 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV D, L /  1 byte / 5 cycles / moves L into D
     case 0x55: { regs->d = regs->l; cycles += 5; break; }
     // MOV D, M /  1 byte / 7 cycles / moves contents in memory location spcified by HL into D reg
-    case 0x56: { regs->d = memory[(regs->h << 8) | regs->l]; cycles += 7; break; }
+    case 0x56: { mov_m(&regs->d,false);; cycles += 7; break; }
     // MOV D, A /  1 byte / 5 cycles / moves A into D
     case 0x57: { regs->d = regs->a; cycles += 5; break; }
     // MOV E, B / 1 byte / 5 cycles / moves B into E
@@ -515,7 +515,7 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV E, L / 1 byte / 5 cycles / moves L into E
     case 0x5D: { regs->e = regs->l; cycles += 5; break; }
     // MOV E, M / 1 byte / 7 cycles / moves contents in memory location refered to by HL into E
-    case 0x5E: { regs->e = memory[(regs->h << 8) | regs->l]; cycles += 7; break; }
+    case 0x5E: { mov_m(&regs->e,false); cycles += 7; break; }
     // MOV E, A / 1 byte / 5 cycles / moves the contents of A into E
     case 0x5F: { regs->e = regs->a; cycles += 5; break; }
 
@@ -533,7 +533,7 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV H,L / 1 byte / 5 cycles / moves L into H
     case 0x65: { regs->h = regs->l; cycles += 5; break; }
     // MOV H,M / 1 byte / 7 cycles / moves the value in memory reference by the value in reg HL and sets it to H
-    case 0x66: { regs->h = memory[(regs->h << 8) | regs->l]; cycles += 7; break; }
+    case 0x66: { mov_m(&regs->h,false); cycles += 7; break; }
     // MOV H,A / 1 byte / 5 cycles / moves A into H
     case 0x67: { regs->h = regs->a; cycles += 5; break; }
     // MOV L,B / 1 byte / 5 cycles / moves B into L
@@ -549,24 +549,24 @@ void _8080::execute_instruction(u8 opcode) {
     // MOV L,L / 1 byte / 5 cycles / moves L into L
     case 0x6D: { regs->l = regs->l; cycles += 5; break; }
     // MOV L,M / 1 byte / 7 cylces / moves the value in memory referenced by HL into the L reg
-    case 0x6E: { regs->l = memory[(regs->h << 8) | regs->l]; cycles += 7; break; }
+    case 0x6E: { mov_m(&regs->l,false); cycles += 7; break; }
     // MOV L,A / 1 byte / 5 cycles / moves A into L
     case 0x6F: { regs->l = regs->a; cycles += 5; break; }
 
 
     // 70 - 7F /////////////////////////////////////////////////////
     // MOV M,B / 1 byte / 7 cycles /  moves contents in B into memory location reference by HL
-    case 0x70: { memory[(regs->h << 8) | regs->l] = regs->b; cycles += 7; break; }
+    case 0x70: { mov_m(&regs->b, true); cycles += 7; break; }
     // MOV M,C / 1 byte / 7 cycles /  moves contents in C into memory location reference by HL
-    case 0x71: { memory[(regs->h << 8) | regs->l] = regs->c; cycles += 7; break; }
+    case 0x71: { mov_m(&regs->c, true); cycles += 7; break; }
     // MOV M,D / 1 byte / 7 cycles /  moves contents in D into memory location reference by HL
-    case 0x72: { memory[(regs->h << 8) | regs->l] = regs->d; cycles += 7; break; }
+    case 0x72: { mov_m(&regs->d, true); cycles += 7; break; }
     // MOV M,E / 1 byte / 7 cycles /  moves contents in E into memory location reference by HL
-    case 0x73: { memory[(regs->h << 8) | regs->l] = regs->e; cycles += 7; break; }
+    case 0x73: { mov_m(&regs->e, true); cycles += 7; break; }
     // MOV M,H / 1 byte / 7 cycles /  moves contents in H into memory location reference by HL
-    case 0x74: { memory[(regs->h << 8) | regs->l] = regs->h; cycles += 7; break; }
+    case 0x74: { mov_m(&regs->h, true); cycles += 7; break; }
     // MOV M,L / 1 byte / 7 cycles /  moves contents in L into memory location reference by HL
-    case 0x75: { memory[(regs->h << 8) | regs->l] = regs->l; cycles += 7; break; }
+    case 0x75: { mov_m(&regs->l,true); cycles += 7; break; }
     // HLT / 1 byte / 7 cycles / halts until an interupt occurs
     case 0x76: {
       halted = true;  
@@ -574,7 +574,7 @@ void _8080::execute_instruction(u8 opcode) {
       break;
     }
     // MOV M,A / 1 byte / 7 cycles /  moves contents in A into memory location reference by HL
-    case 0x77: { memory[(regs->h << 8) | regs->l] = regs->a; cycles += 7; break; }
+    case 0x77: { mov_m(&regs->a, true); cycles += 7; break; }
     // MOV A,B / 1 byte / 5 cycles / moves B contents into A
     case 0x78: { regs->a = regs->b; cycles += 5; break; }
     // MOV A,C / 1 byte / 5 cycles / moves C contents into A
@@ -589,8 +589,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x7D: { regs->a = regs->l; cycles += 5; break; }
     // MOV A,M / 1 byte / 7 cyles / moves contents memory[HL] into A
     case 0x7E: { // MOV A, M or LD A, (HL)
-      u16 addr = (regs->h << 8) | regs->l;
-      regs->a = memory[addr];
+      mov_m(&regs->a, false);
       cycles += 7;
       break;
     }
@@ -1055,6 +1054,14 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xFE: { compare_register(&(regs->a), fetch_byte(), &(regs->f)); cycles += 7; break;}
     // RST 7 / 1 byte / 11 cycles / 
     case 0xFF: { RST(7); cycles += 11; break; }
+  }
+}
+
+void _8080::mov_m (u8* reg, bool into_m) {
+  if (into_m) {
+    memory[regs->hl] = *(reg);
+  } else {
+    *reg = memory[regs->hl];
   }
 }
 

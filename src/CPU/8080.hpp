@@ -82,6 +82,7 @@ class _8080 {
         u8 fetch_byte(); // fetch bytes
         u16 fetch_bytes(); // fetch next 2 bytes
         void execute_instruction(u8 opcode);
+        void mov_m (u8* reg, bool into_m);
         void LXI_register(u16* reg); // load next 16 bits in memory into reg specified
         void increment_register(u8* reg, u8* f_reg); // increment given reg and check flags
         void decrement_register(u8* reg, u8* f_reg); // decremtn given reg and check flags
