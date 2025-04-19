@@ -1379,7 +1379,8 @@ void _8080::handleCPMCall() {
 
 void _8080::execute_interrupt(int opcode) {
   if (interrupt_enabled) {
-    halted = false;          
+    halted = false;
+    interrupt_enabled = false;          
     execute_instruction(opcode);
   }
 }

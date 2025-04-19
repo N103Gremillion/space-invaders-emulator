@@ -39,7 +39,6 @@ int Screen::determine_pixel_color(int bit, int y) {
 
 // note: pixles are draw from bottom left vertially from VRAM
 void Screen::change_pixels(_8080* cpu) {
-  printf("PC: 0x%04X\n", cpu->regs->pc);
   int byte_num = 1;
   u8 cur_byte = 0;
   int cur_column = 0;
@@ -47,11 +46,8 @@ void Screen::change_pixels(_8080* cpu) {
   for (uint16_t address = VRAM_START; address <= VRAM_END; address++) {
     cur_byte = cpu->memory[address];
     for (int i = 0; i < 8; i++) {
-      int bit = (cur_byte >> 7) & 1;
-      cur_byte = cur_byte << 1;
-      // std::cout << "THe current row is " << cur_row - i << std::endl;
-      // std::cout << "The current column is " << cur_column << std::endl;
-      // std::cout<< " byte number " << byte_num << std::endl;
+      int bit = (cur_byte << 7) & 0x80;
+      cur_byte = cur_byte >> 1;
       pixels[((cur_row - i) * NUM_OF_COLUMNS) + cur_column] = determine_pixel_color(bit, cur_row);
     }
     cur_row-=8;
