@@ -1,6 +1,10 @@
 #include "Registers.hpp"
 
 Registers::Registers(){
+
+    f |= (1 << FLAG_TO_SET); 
+    f |= (1 << FLAG_TO_CLEAR); 
+    f |= (1 << FLAG_TO_CLEAR_AGAIN); 
     
     window = SDL_CreateWindow("Registers", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_w, window_h, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);

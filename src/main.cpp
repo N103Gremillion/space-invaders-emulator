@@ -47,15 +47,17 @@ void setup_space_invaders(_8080* _8080_) {
 
 void setup_test(_8080* _8080_) {
   // Load the cpudiag.bin file at 0x100
-  _8080_->load_rom(TEST3_FILE, 0x100);
+  _8080_->load_rom(TEST1_FILE, 0x100);
   _8080_->regs->pc = 0x0100;
   _8080_->memory[0x0006] = 0x00;
   _8080_->memory[0x0007] = 0x24;
 }
 
 int main() {
-  setup_signal_handlers();
+  // Registers* regs = new Registers();
+  // cout << " \n the value is "<< (int)regs->f << endl;
   _8080* _8080_ = new _8080();
+  setup_signal_handlers();
   setup_space_invaders(_8080_);
   _8080_->run();
   // setup_test(_8080_);

@@ -11,11 +11,15 @@
 
 #define WHITE 0xFFFFFF
 #define BLACK 0x000000
-#define CARRY_POS 0
-#define AUX_POS 4
 #define SIGN_POS 7
 #define ZERO_POS 6
+#define AUX_POS 4
 #define PARITY_POS 2
+#define CARRY_POS 0
+#define ALWAYS_DISTANCE 8
+#define FLAG_TO_SET 1
+#define FLAG_TO_CLEAR 5
+#define FLAG_TO_CLEAR_AGAIN 3
 
 using u16 = uint16_t;
 using u8 = uint8_t;
@@ -42,8 +46,8 @@ class Registers{
       union {
         struct {
             u8 ca:1;  // Carry
-            u8 :1;
-            u8 p:1;  // Parity bit
+            u8 :1;  // Parity bit
+            u8 p:1;
             u8 :1;
             u8 ac:1; // Auxiliary carry 
             u8 :1;   

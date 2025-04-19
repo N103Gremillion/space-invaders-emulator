@@ -85,7 +85,7 @@ class _8080 {
         void LXI_register(u16* reg); // load next 16 bits in memory into reg specified
         void increment_register(u8* reg, u8* f_reg); // increment given reg and check flags
         void decrement_register(u8* reg, u8* f_reg); // decremtn given reg and check flags
-        void DAD_register(u16* hl, u16 reg_pair, u8* flags); // add value in reg to HL reg pair (modifies the carry flag if there is overflow)
+        void DAD_register(u16* hl, u16* reg_pair, u8* flags); // add value in reg to HL reg pair (modifies the carry flag if there is overflow)
         void add_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
         void subtract_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being subtracted from a) f_reg (flags reg)
         void bitwise_AND_register(u8* a, u8 val, u8* f_reg); // a (accumulator pointer), val (value being added to a) f_reg (flags reg)
