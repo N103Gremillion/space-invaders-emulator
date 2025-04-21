@@ -25,6 +25,10 @@ A C++ emulator for the original **Space Invaders** arcade game, built using **SD
 
 ---
 
+## Eample for how it looks when running
+![image](https://github.com/user-attachments/assets/acd3f249-bd84-46b1-9512-f9770fc4e94d)
+
+
 ## 🚀 Building & Running
 
 Clone the repository and make sure the original **Space Invaders ROM files** (`invaders.e`, `invaders.f`, `invaders.g`, and `invaders.h`) are placed inside a folder named `invaders` in the root directory:
@@ -43,4 +47,5 @@ Space_Invaders_Emulator/
 🙏 Credits
 TheAssembler1 – for the logging library used in this project.
 Space Invaders ROM and hardware documentation from various emulator resources.
+
 
