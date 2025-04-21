@@ -270,8 +270,15 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x06: { regs->b = fetch_byte(); cycles += 7; break; }
     // RLC / 1 byte / 4 cycles / - - - - C / (Rotate left through carry) / shift bits of A by 1 (A << 1) then set LSB (least sig bit) of A to value in carry finally take the MSB (most sig bit) of A and make carry that value
     case 0x07: { 
-      regs->ca = ((regs->a & 0x80) == 0x80) ? 1 : 0;
-      regs->a = (regs->a << 1) | regs->ca; 
+      int carry = 0;
+      if ((regs->a & 0x80) == 0x80) {
+        regs->set_flag(CARRY_POS);
+        carry = 1;
+      } else {
+        regs->reset_flag(CARRY_POS);
+        carry = 0;
+      }
+      regs->a = (regs->a << 1) | carry; 
       cycles += 4; 
       break; 
     }
@@ -291,10 +298,16 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x0E: { regs->c = fetch_byte(); cycles += 7; break; }
     // RRC / 1 byte / 4 cycles / - - - - CA / rotate accumulator right
     case 0x0F: {
+      // Get the lowest bit (LSB) of the accumulator to determine the carry
       int low_bit = (regs->a & 0x01);
-      regs->ca = low_bit;
+      // Set the carry flag based on the LSB of A
+      if (low_bit == 1) {
+          regs->set_flag(CARRY_POS);
+      } else {
+          regs->reset_flag(CARRY_POS);
+      }
       regs->a = (regs->a >> 1);
-      regs->a = (regs->a | (low_bit << 7));
+      regs->a |= (low_bit << 7);
       cycles += 4;
       break;
     }
@@ -317,8 +330,13 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x16: { regs->d = fetch_byte(); cycles += 7; break; }
     // RAL / 1 byte / 4 cycles / - - - - C / A is rotated << 1 and the high bit replaces the carry bit while carry replaces the high bit
     case 0x17: { 
-      int cur_carry = regs->ca; 
-      regs->ca = (regs->a & 0x80) >> 7; 
+      int cur_carry = regs->get_flag(CARRY_POS);
+      int val = (regs->a & 0x80) >> 7; 
+      if (val) {
+        regs->set_flag(CARRY_POS);
+      }  else {
+        regs->reset_flag(CARRY_POS);
+      }
       regs->a = (regs->a << 1) | cur_carry; 
       cycles += 4; 
       break; 
@@ -339,9 +357,15 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x1E: { regs->e = fetch_byte(); cycles += 7; break; }
     // RAR / 1 byte / 4 cycles / - - - - CA / rotate accumulator right
     case 0x1F: {
-      int prev_carry = regs->ca;
-      regs->ca = (regs->a & 0x01);
-      regs->a = (regs->a >> 1);
+      int prev_carry = regs->get_flag(CARRY_POS);
+      int val = (regs->a & 0x01);
+      if (val) {
+        regs->set_flag(CARRY_POS);
+      } else {
+        regs->reset_flag(CARRY_POS);
+      }
+      regs->a = (regs->a >> 1) | (prev_carry << 7);
+      cycles += 4;
       break;
     }
 
@@ -364,13 +388,13 @@ void _8080::execute_instruction(u8 opcode) {
         bool set_cy = 0;
 
         // Lower nibble adjustment
-        if ((old_a & 0x0F) > 9 || regs->ac) {
+        if ((old_a & 0x0F) > 9 || regs->get_flag(AUX_POS)) {
             correction += 0x06;
             set_ac = true;
         }
 
         // Upper nibble adjustment
-        if (old_a > 0x99 || regs->ca) {
+        if (old_a > 0x99 || regs->get_flag(CARRY_POS)) {
             correction += 0x60;
             set_cy = true;
         }
@@ -380,12 +404,20 @@ void _8080::execute_instruction(u8 opcode) {
         regs->a = result & 0xFF;
 
         // Set flags
-        regs->ac = set_ac ? 1 : 0;
-        regs->ca = set_cy ? 1 : 0;
-        regs->z = check_zero_flag(regs->a);
-        regs->s = check_sign_flag(regs->a);
-        regs->p = check_parity_flag(regs->a);
+        if (set_ac) {
+          regs->set_flag(AUX_POS);
+        } else {
+          regs->reset_flag(AUX_POS);
+        }
+        if (set_cy) {
+          regs->set_flag(CARRY_POS);
+        } else {
+          regs->reset_flag(CARRY_POS);
+        }
 
+        check_set_zero_flag(regs->a);
+        check_set_sign_flag(regs->a);
+        check_set_parity_flag(regs->a);
         cycles += 4;
         break;
     }
@@ -431,7 +463,7 @@ void _8080::execute_instruction(u8 opcode) {
     // MVI M, d8 (move immediate) / 2 byte / 10 cycle / - - - - - / move d8 value into memory with reference in HL
     case 0x36: { memory[regs->hl] = fetch_byte(); cycles += 10; break; }
     // STC / 1 byte / 4 cycle / - - - - CA / carry bit set to 1
-    case 0x37: { regs->ca = 1; cycles += 4; break; }
+    case 0x37: { regs->set_flag(CARRY_POS); cycles += 4; break; }
     // NOP / 1 byte / 4 cycles / nothing
     case 0x38: { cycles += 4; break; }
     // DAD SP / 1 byte / 10 cycles / - - - - CA / (double add) / add value in SP reg pair to HL reg pair (modifies the carry flag if there is overflow)
@@ -447,7 +479,16 @@ void _8080::execute_instruction(u8 opcode) {
     // MVI A, d8 / 2 bytes / 7 cycles / - - - - - / move next byte into a reg
     case 0x3E: { regs->a = fetch_byte(); cycles += 7; break; }
     // CMC / 1 byte / 4 cycles / - - - - CA / flips the cary bit
-    case 0x3F: { regs->ca = ~regs->ca; cycles += 4; break; }
+    case 0x3F: { 
+      int carry = regs->get_flag(CARRY_POS);
+      if (carry > 0) {
+        regs->reset_flag(CARRY_POS);
+      } else {
+        regs->set_flag(CARRY_POS);
+      }
+      cycles += 4;
+      break; 
+    }
 
 
     // 40 - 4F ////////////////////////////////////////////////////
@@ -609,14 +650,14 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x87: { add_register(&(regs->a), regs->a, &(regs->f)); cycles += 4; break; }
 
     // ADC B / 1 byte / 4 cycles / S Z AC P CA / B and carry are added and stored in A
-    case 0x88: { add_register(&(regs->a), (regs->b + (regs->ca ? 1 : 0)), &(regs->f)); cycles += 4; break; }
-    case 0x89: { add_register(&(regs->a), (regs->c + (regs->ca ? 1 : 0)), &(regs->f)); cycles += 4; break; }
-    case 0x8A: { add_register(&(regs->a), (regs->d + (regs->ca ? 1 : 0)), &(regs->f)); cycles += 4; break; }
-    case 0x8B: { add_register(&(regs->a), (regs->e + (regs->ca ? 1 : 0)), &(regs->f)); cycles += 4; break; }
-    case 0x8C: { add_register(&(regs->a), (regs->h + (regs->ca ? 1 : 0)), &(regs->f)); cycles += 4; break; }
-    case 0x8D: { add_register(&(regs->a), (regs->l + (regs->ca ? 1 : 0)), &(regs->f)); cycles += 4; break; }
-    case 0x8E: { add_register(&(regs->a), (memory[regs->hl] + (regs->ca ? 1 : 0)), &(regs->f)); cycles += 7; break; }
-    case 0x8F: { add_register(&(regs->a), (regs->a + (regs->ca ? 1 : 0)), &(regs->f)); cycles += 4; break; }
+    case 0x88: { add_register(&(regs->a), (regs->b + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 4; break; }
+    case 0x89: { add_register(&(regs->a), (regs->c + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 4; break; }
+    case 0x8A: { add_register(&(regs->a), (regs->d + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 4; break; }
+    case 0x8B: { add_register(&(regs->a), (regs->e + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 4; break; }
+    case 0x8C: { add_register(&(regs->a), (regs->h + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 4; break; }
+    case 0x8D: { add_register(&(regs->a), (regs->l + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 4; break; }
+    case 0x8E: { add_register(&(regs->a), (memory[regs->hl] + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 7; break; }
+    case 0x8F: { add_register(&(regs->a), (regs->a + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 4; break; }
 
 
     // 90 - 9F ////////////////////////////////////////////////////////
@@ -631,14 +672,14 @@ void _8080::execute_instruction(u8 opcode) {
     case 0x97: { subtract_register(&(regs->a), regs->a, &(regs->f)); cycles +=4; break; }
 
     // SBB B / 1 byte / 4 cycles / S Z AC P CA / subtracts the contents of B and CA from A and store in A
-    case 0x98: { subtract_register(&(regs->a), (regs->b + (regs->ca ? 1 : 0)), &(regs->f)); cycles +=4; break; } 
-    case 0x99: { subtract_register(&(regs->a), (regs->c + (regs->ca ? 1 : 0)), &(regs->f)); cycles +=4; break; }
-    case 0x9A: { subtract_register(&(regs->a), (regs->d + (regs->ca ? 1 : 0)), &(regs->f)); cycles +=4; break; }
-    case 0x9B: { subtract_register(&(regs->a), (regs->e + (regs->ca ? 1 : 0)), &(regs->f)); cycles +=4; break; }
-    case 0x9C: { subtract_register(&(regs->a), (regs->h + (regs->ca ? 1 : 0)), &(regs->f)); cycles +=4; break; }
-    case 0x9D: { subtract_register(&(regs->a), (regs->l + (regs->ca ? 1 : 0)), &(regs->f)); cycles +=4; break; }
-    case 0x9E: { subtract_register(&(regs->a), (memory[regs->hl] + (regs->ca ? 1 : 0)), &(regs->f)); cycles +=7; break; }
-    case 0x9F: { subtract_register(&(regs->a), (regs->a + (regs->ca ? 1 : 0)), &(regs->f)); cycles +=4; break; }
+    case 0x98: { subtract_register(&(regs->a), (regs->b + regs->get_flag(CARRY_POS)), &(regs->f)); cycles +=4; break; } 
+    case 0x99: { subtract_register(&(regs->a), (regs->c + regs->get_flag(CARRY_POS)), &(regs->f)); cycles +=4; break; }
+    case 0x9A: { subtract_register(&(regs->a), (regs->d + regs->get_flag(CARRY_POS)), &(regs->f)); cycles +=4; break; }
+    case 0x9B: { subtract_register(&(regs->a), (regs->e + regs->get_flag(CARRY_POS)), &(regs->f)); cycles +=4; break; }
+    case 0x9C: { subtract_register(&(regs->a), (regs->h + regs->get_flag(CARRY_POS)), &(regs->f)); cycles +=4; break; }
+    case 0x9D: { subtract_register(&(regs->a), (regs->l + regs->get_flag(CARRY_POS)), &(regs->f)); cycles +=4; break; }
+    case 0x9E: { subtract_register(&(regs->a), (memory[regs->hl] + regs->get_flag(CARRY_POS)), &(regs->f)); cycles +=7; break; }
+    case 0x9F: { subtract_register(&(regs->a), (regs->a + regs->get_flag(CARRY_POS)), &(regs->f)); cycles +=4; break; }
      
 
     // A0 - AF /////////////////////////////////////////////////////////
@@ -686,7 +727,7 @@ void _8080::execute_instruction(u8 opcode) {
     // C0 - CF ////////////////////////////////////////////////////////////
     // RNZ (return if not zero) / 1 byte /  checks the zero flag is 0 pop 2 bytes from stack(address) and set the PC to this location 
     case 0xC0: {
-      if (regs->z == 0) {
+      if (!(regs->check_flag(ZERO_POS))) {
         RET();
         cycles += 11;
       } else {
@@ -698,7 +739,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC1: { pop_register(&(regs->b), &(regs->c)); cycles += 10; break; }
     // JNZ a16 / 3 bytes / 10 cycles / - - - - - / jump if not zero
     case 0xC2: {
-      if (regs->z == 0) {
+      if (!(regs->check_flag(ZERO_POS))) {
         JMP();
       } else {
         regs->pc += 2;
@@ -710,7 +751,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC3: { JMP(); cycles += 10; break; }
     // CNZ / 3 bytes / 17/11 cycles / - - - - - / Call if not zero
     case 0xC4: {
-      if (regs->z == 0) {
+      if (!(regs->check_flag(ZERO_POS))) {
         CALL(fetch_bytes());
         cycles += 17;
       } else {
@@ -729,7 +770,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC7: { RST(0); cycles += 11; break; }
     // RZ / 1 byte / 11/5 cycles / return if zero
     case 0xC8: {
-      if (regs->z == 1) {
+      if (regs->check_flag(ZERO_POS)) {
         RET();
         cycles += 11;
       } else {
@@ -741,7 +782,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xC9: { RET(); cycles += 10; break; }
     // JZ a16 / 3 bytes / 10 cycles / - - - - - / jump if zero
     case 0xCA: {
-      if (regs->z == 1) {
+      if (regs->check_flag(ZERO_POS)) {
         JMP(); 
         cycles += 10; 
       } else {
@@ -754,7 +795,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xCB: { JMP(); cycles += 10; break;}
     // CZ a16 / 3 byte / 17/11 / call if zero
     case 0xCC: {
-      if (regs->z == 1) {
+      if (regs->check_flag(ZERO_POS)) {
         CALL(fetch_bytes());
         cycles += 17;
       } else {
@@ -766,14 +807,14 @@ void _8080::execute_instruction(u8 opcode) {
     // CALL / 3 bytes / 17 cycles / 
     case 0xCD: { CALL(fetch_bytes()); cycles += 17; break; }
     // ACI / 2 byte / 7 cyles / add next byte to A and the carry
-    case 0xCE: { add_register(&(regs->a), (fetch_byte() + regs->ca), &(regs->f)); cycles += 7; break;}
+    case 0xCE: { add_register(&(regs->a), (fetch_byte() + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 7; break;}
     // RST 1 / 1 byte / 11 cycles / 
     case 0xCF: { RST(1); cycles += 11; break; }
 
     // D0 - DF ///////////////////////////////////////////////////////////////
     // RNC (return if no carry) / 1 byte / 11/5 cyles
     case 0xD0: {
-      if (regs->ca == 0) {
+      if (!(regs->check_flag(CARRY_POS))) {
         RET();
         cycles += 11;
       } else {
@@ -785,7 +826,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xD1: { pop_register(&(regs->d), &(regs->e)); cycles += 10; break; }
     // JNC a16 / 3 bytes / 10 cycles / - - - - - / jump if not carry
     case 0xD2: {
-      if (regs->ca == 0) {
+      if (!(regs->check_flag(CARRY_POS))) {
         JMP();
       } else {
         regs->pc += 2;
@@ -802,7 +843,7 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CNC / 3 bytes / 17/11 cycles / - - - - - / Call if not carry
     case 0xD4: {
-      if (regs->ca == 0) {
+      if (!(regs->check_flag(CARRY_POS))) {
         CALL(fetch_bytes());
         cycles += 17;
       } else {
@@ -819,7 +860,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xD7: { RST(2); cycles += 11; break; }
     // RC / 1 byte / 11/5 cycles / return if carry
     case 0xD8: {
-      if (regs->ca == 1) {
+      if (regs->check_flag(CARRY_POS)) {
         RET();
         cycles += 11;
       } else {
@@ -831,7 +872,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xD9: { RET(); cycles += 10; break; }
     // JC a16 / 3 bytes / 10 cycles / - - - - - / jump if carry
     case 0xDA: {
-      if (regs->ca == 1) {
+      if (regs->check_flag(CARRY_POS)) {
         JMP(); 
         cycles += 10; 
       } else {
@@ -843,14 +884,14 @@ void _8080::execute_instruction(u8 opcode) {
     // IN d8 / 2 bytes / 10 cycles / 
     case 0XDB: { 
       u8 port = fetch_byte();    
-      std::cout << "[DEBUG] IN instruction executed. Port: " << (int)port << "\n";
+      // std::cout << "[DEBUG] IN instruction executed. Port: " << (int)port << "\n";
       handle_io(port, IN, &(regs->a));
       cycles += 10;
       break;
     }
     // CC / 3 bytes / 17/11 cyles / call if carry
     case 0xDC : { 
-      if (regs->ca){
+      if (regs->check_flag(CARRY_POS)){
         CALL(fetch_bytes());
         cycles += 17;
       } else {
@@ -862,14 +903,14 @@ void _8080::execute_instruction(u8 opcode) {
     // CALL / 3 bytes / 17 cycles / 
     case 0xDD: { CALL(fetch_bytes()); cycles += 17; break; }
     // SBI / 2 byte / 7 cyles / subtract next byte to A and the carry
-    case 0xDE: { subtract_register(&(regs->a), (fetch_byte() + regs->ca), &(regs->f)); cycles += 7; break;}
+    case 0xDE: { subtract_register(&(regs->a), (fetch_byte() + regs->get_flag(CARRY_POS)), &(regs->f)); cycles += 7; break;}
     // RST 3 / 1 byte / 11 cycles / 
     case 0xDF: { RST(3); cycles += 11; break; }
 
     // E0 - EF ///////////////////////////////////////////////////////////////
     // RPO / 1 byte / 11/5 cycles / If the Parity bit is zero (indicating odd parity), a return (pop 2 bytes form stack and set pc to it) operation is performed.
     case 0xE0: {
-      if (regs->p == 0) {
+      if (!(regs->check_flag(PARITY_POS))) {
         RET();
         cycles += 11;
       } else {
@@ -881,7 +922,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xE1: { pop_register(&(regs->h), &(regs->l)); cycles += 10; break; }
     // JP0 a16 / 3 bytes / 10 cycles / - - - - - / jump if parity odd
     case 0xE2: {
-      if (regs->p == 0) {
+      if (!(regs->check_flag(PARITY_POS))) {
         JMP();
       } else {
         regs->pc += 2;
@@ -902,7 +943,7 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CPO / 3 bytes / 17/11 cycles / - - - - - / Call if parity odd
     case 0xE4: {
-      if (regs->p == 0) {
+      if (!(regs->check_flag(PARITY_POS))) {
         CALL(fetch_bytes());
         cycles += 17;
       } else {
@@ -919,7 +960,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xE7: { RST(4); cycles += 11; break; }
     // RPE / 1 byte / 11/5 cycles / return if parity even
     case 0xE8: {
-      if (regs->p == 1) {
+      if (regs->check_flag(PARITY_POS)) {
         RET();
         cycles += 11;
       } else {
@@ -935,7 +976,7 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // JPE a16 / 3 bytes / 10 cycles / - - - - - / jump if parity even
     case 0xEA: {
-      if (regs->p == 1) {
+      if (regs->check_flag(PARITY_POS)) {
         JMP(); 
         cycles += 10; 
       } else {
@@ -954,7 +995,7 @@ void _8080::execute_instruction(u8 opcode) {
     }
     // CPE / 3 bytes / 17/11 cyles / call if parity is even(1)
     case 0xEC : { 
-      if (regs->p){
+      if (regs->check_flag(PARITY_POS)){
         CALL(fetch_bytes());
         cycles += 17;
       } else {
@@ -973,7 +1014,7 @@ void _8080::execute_instruction(u8 opcode) {
     // F0 - FF //////////////////////////////////////////////////////////////
     // RP / 1 byte / 11/5 cycles (if sign bit zero return)
     case 0xF0: {
-      if (regs->s == 0) {
+      if (!(regs->check_flag(SIGN_POS))) {
         RET();
         cycles += 11;
       } else {
@@ -985,7 +1026,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xF1: { pop_register(&(regs->a), &(regs->f)); cycles += 10; break; }
     // JP a16 / 3 bytes / 10 cycles / - - - - - / jump if positive
     case 0xF2: {
-      if (regs->s == 0) {
+      if (!(regs->check_flag(SIGN_POS))) {
         JMP();
       } else {
         regs->pc += 2;
@@ -997,7 +1038,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xF3: { interrupt_enabled = false; cycles += 4; break; }
     // CP / 3 bytes / 17/11 cycles / - - - - - / Call if plus
     case 0xF4: {
-      if (regs->s == 0) {
+      if (!(regs->check_flag(SIGN_POS))) {
         CALL(fetch_bytes());
         cycles += 17;
       } else {
@@ -1014,7 +1055,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xF7: { RST(6); cycles += 11; break; }
     // RM / 1 byte / 11/5 cycles / return if minus
     case 0xF8: {
-      if (regs->s == 1) {
+      if (regs->check_flag(SIGN_POS)) {
         RET();
         cycles += 11;
       } else {
@@ -1026,7 +1067,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xF9: { regs->sp = regs->hl; cycles += 5; break; }
     // JM a16 / 3 bytes / 10 cycles / - - - - - / jump if minus (sign bit is 1)
     case 0xFA: {
-      if (regs->s == 1) {
+      if (regs->check_flag(SIGN_POS)) {
         JMP(); 
         cycles += 10; 
       } else {
@@ -1039,7 +1080,7 @@ void _8080::execute_instruction(u8 opcode) {
     case 0xFB: { interrupt_enabled = true; cycles += 4; break; }
     // CM / 3 bytes / 17/11 cyles / call if minus (sign bit = 1)
     case 0xFC : { 
-      if (regs->s){
+      if (regs->check_flag(SIGN_POS)){
         CALL(fetch_bytes());
         cycles += 17;
       } else {
@@ -1071,21 +1112,23 @@ void _8080::LXI_register(u16* reg) {
 }
 
 void _8080::increment_register(u8* reg, u8* flags) {
-  u8 res = *(reg) + 1;
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(reg), res) << AUX_POS); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
-  *reg += 1;
+  u8 initial = *(reg);
+  u16 res = initial + 1;
+  check_set_auxilary_flag(initial, res);
+  check_set_sign_flag(res);
+  check_set_zero_flag(res);
+  check_set_parity_flag(res);
+  *reg = (u8) res;
 }
 
 void _8080::decrement_register(u8* reg, u8* flags) {
+  u8 initial = *(reg); 
   u8 res = *(reg) - 1;
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(reg), res) << AUX_POS); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
-  *reg -= 1;
+  check_set_auxilary_flag(*(reg), res);
+  check_set_sign_flag(res);
+  check_set_zero_flag(res);
+  check_set_parity_flag(res);
+  *reg = res;
 }
 
 void _8080::DAD_register(u16* hl, u16* reg_pair, u8* flags) {
@@ -1093,71 +1136,74 @@ void _8080::DAD_register(u16* hl, u16* reg_pair, u8* flags) {
   u16 reg_val = *reg_pair;
   u32 result = (u32) (inital + reg_val);
   *hl = result;
-  int bit = check_carry_flag(inital >> 8, result >> 8);
-  *flags = ((*flags & 0xFE) | (bit << CARRY_POS)); // carry
+  check_set_carry_flag(inital >> 8, result >> 8);
 }
 
 // note: the a is the reg that the result is stored in
 void _8080::add_register(u8* a, u8 val, u8* flags) {
   u8 initial = *a;
   u16 res = initial + val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(initial, res) << CARRY_POS); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(initial, res) << AUX_POS); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag((u8) res) << PARITY_POS); // parity flag
+  check_set_carry_flag(initial, res);
+  check_set_auxilary_flag(initial, res);
+  check_set_sign_flag(res);
+  check_set_zero_flag(res);
+  check_set_parity_flag(res);
   *a = res;
 }
 
 void _8080::subtract_register(u8* a, u8 val, u8* flags) {
   u8 initial = *a;
   u16 res = (u16) initial - val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+  check_set_carry_flag(initial, res);
+  check_set_auxilary_flag(initial, res);
+  check_set_sign_flag(res);
+  check_set_zero_flag(res);
+  check_set_parity_flag(res);
   *a = res;
 }
 
 void _8080::bitwise_AND_register(u8* a, u8 val, u8* flags) {
+  u8 initial = *(a);
   u16 res = *(a) & val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+  check_set_carry_flag(initial, res);
+  check_set_auxilary_flag(initial, res);
+  check_set_sign_flag(res);
+  check_set_zero_flag(res);
+  check_set_parity_flag(res);
   *a = res;
 }
 
 void _8080::bitwise_XOR_register(u8* a, u8 val, u8* flags) {
+  u8 initial = *(a);
   u16 res = *(a) ^ val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+  check_set_carry_flag(initial, res);
+  check_set_auxilary_flag(initial, res);
+  check_set_sign_flag(res);
+  check_set_zero_flag(res);
+  check_set_parity_flag(res);
   *a = res;
 }
 
 void _8080::bitwise_OR_register(u8* a, u8 val, u8* flags) {
-  u16 res = *(a) | val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+  u8 initial = *(a);
+  u16 res = initial | val;
+  check_set_carry_flag(initial, res);
+  check_set_auxilary_flag(initial, res);
+  check_set_sign_flag(res);
+  check_set_zero_flag(res);
+  check_set_parity_flag(res);
   *a = res;
 }
 
 void _8080::compare_register(u8* a, u8 val, u8* flags) {
   // note : comparison is done using subtraction
-  u16 res = *(a) - val;
-  *flags = (*flags & 0xFE) | (check_carry_flag(*(a), res) << CARRY_POS); // carry
-  *flags = (*flags & 0xEF) | (check_auxilary_flag(*(a), res) << AUX_POS); // aux flag
-  *flags = (*flags & 0x7F) | (check_sign_flag(res) << SIGN_POS); // sign flag
-  *flags = (*flags & 0xBF) | (check_zero_flag(res) << ZERO_POS); // zero flag
-  *flags = (*flags & 0xFB) | (check_parity_flag(res) << PARITY_POS); // parity flag
+  u8 initial = *(a);
+  u16 res = initial - val;
+  check_set_carry_flag(initial, res);
+  check_set_auxilary_flag(initial, res);
+  check_set_sign_flag(res);
+  check_set_zero_flag(res);
+  check_set_parity_flag(res);
 }
 
 u16 _8080::pop_stack() {
@@ -1218,48 +1264,61 @@ void _8080::RST(u16 n) {
   regs->pc = n * 8;
 }
 
-int _8080::check_sign_flag(u16 num) {
-  u16 res = num & 0x80;
-  if (res == 0x80) {
-    return 1;
+void _8080::check_set_sign_flag(u16 num) {
+  u16 val = num & 0xFF;
+  if (val & 0x80) {
+    regs->set_flag(SIGN_POS);
   } else {
-    return 0;
+    regs->reset_flag(SIGN_POS);
   }
 }
 
-int _8080::check_zero_flag(u16 res) {
-  if (!(res & 0xFF)) {
-    return 1;
+void _8080::check_set_zero_flag(u16 res) {
+  u8 val = (u8) res;
+  if (val == 0) {
+    regs->set_flag(ZERO_POS);
   } else {
-    return 0;
+    regs->reset_flag(ZERO_POS);
   }
 }
 
-int _8080::check_auxilary_flag(u8 initial, u16 res) {
+void _8080::check_set_auxilary_flag(u8 initial, u16 res) {
     u8 operand = (u8)(res - initial);
-    return ((initial & 0xF) + (operand & 0xF)) > 0xF;
-}
-
-
-int _8080::check_parity_flag(u16 num) {
-  int count = 0;
-  while (num > 0) {
-    count += num & 0x1;
-    num >>= 1;
-  }
-  return (count % 2 == 0) ? 1 : 0;
-}
-
-int _8080::check_carry_flag(u8 initial, u16 result) {
-  // Check if the result indicates a carry has occurred
-    if (result > OVERFLOW) { // Check if carry occurred 
-        return 1;  // Set the carry flag
+    if (((initial & 0xF) + (operand & 0xF)) > 0xF) {
+      regs->set_flag(AUX_POS);
     } else {
-        return 0;  // Clear the carry flag
+      regs->reset_flag(AUX_POS);
     }
 }
 
+
+void _8080::check_set_parity_flag(u16 num) {
+  u8 val = (u8) num;
+  int count = 0;
+  // Count bits using Brian Kernighan's algorithm
+  while (val) {
+    val &= (val - 1);  // Drop the lowest set bit
+    count++;
+  }
+
+  if (count % 2 == 0) {
+    regs->set_flag(PARITY_POS);
+  } else {
+    regs->reset_flag(PARITY_POS);
+  }
+}
+
+void _8080::check_set_carry_flag(u8 initial, u16 result) {
+  // Check if the result indicates a carry has occurred
+  if (result > OVERFLOW) { // Check if carry occurred 
+    regs->set_flag(CARRY_POS);
+  } else {
+    regs->reset_flag(CARRY_POS);
+  }
+}
+
 uint8_t offset = 0;
+
 typedef union{
     struct {
         uint8_t low_value;
@@ -1291,8 +1350,6 @@ void _8080::handle_io(u8 port_num, PortType type, u8* a) {
         #define NOT_CONNECTED 7
 
         uint8_t reg_a = 0;  
-
-         std::cout << "Checking input states..." << std::endl;
 
         if (inputs[INSERT_COIN])
             reg_a |= (1 << CREDIT);       
@@ -1331,7 +1388,7 @@ void _8080::handle_io(u8 port_num, PortType type, u8* a) {
       case INP2:
         break;
       case SHFT_IN: {
-        *a = (((shift_register.high_value << 8) | shift_register.low_value) << offset) >> 8;
+        *a = ((shift_register.value << offset) >> 8) & 0xFF;
         break;
       }
     }

@@ -6,6 +6,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <array>
 #include <vector>
+#include <fstream>
 #include "keys.hpp"
 #include "Screen.hpp"
 #include "Registers.hpp"
@@ -109,11 +110,11 @@ class _8080 {
         void load_rom(const string& file_path, u16 start_address);
         void run();
         void run_test();
-        int check_zero_flag(u16 res); // return value of zero flag 
-        int check_sign_flag(u16 num); // for u16 return value of sign flag
-        int check_auxilary_flag(u8 num, u16 res); // return value of aux flag after a given operation
-        int check_parity_flag(u16 num); // return value of parity flag 
-        int check_carry_flag(u8 initial, u16 result);
+        void check_set_zero_flag(u16 res); // return value of zero flag 
+        void check_set_sign_flag(u16 num); // for u16 return value of sign flag
+        void check_set_auxilary_flag(u8 num, u16 res); // return value of aux flag after a given operation
+        void check_set_parity_flag(u16 num); // return value of parity flag 
+        void check_set_carry_flag(u8 initial, u16 result);
         void execute_interrupt(int interupt_type);
         _8080();
         ~_8080();

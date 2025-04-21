@@ -11,7 +11,7 @@ void handle_key_press(int keycode) {
       break;
     case SPACE:
       keys[SPACE] = true;
-      inputs[SPACE_KEY] = true;
+      inputs[SPACE_KEY] = true;  // Shooting action
       break;
     case _1:
       keys[_1] = true;
@@ -21,14 +21,14 @@ void handle_key_press(int keycode) {
       break;
     case A:
       keys[A] = true;
-      inputs[A_KEY] = true;
+      inputs[A_KEY] = true;  // Move left
       break;
     case C:
       keys[C] = true;
       break;
     case D:
       keys[D] = true;
-      inputs[D_KEY] = true;
+      inputs[D_KEY] = true;  // Move right
       break;
     case I:
       keys[I] = true;
@@ -58,7 +58,7 @@ void handle_key_release(int keycode) {
       break;
     case SPACE:
       keys[SPACE] = false;
-      inputs[SPACE] = false;
+      inputs[SPACE_KEY] = false;  // Stop shooting
       break;
     case _1:
       keys[_1] = false;
@@ -68,14 +68,14 @@ void handle_key_release(int keycode) {
       break;
     case A:
       keys[A] = false;
-      inputs[A_KEY] = false;
+      inputs[A_KEY] = false;  // Stop moving left
       break;
     case C:
       keys[C] = false;
       break;
     case D:
       keys[D] = false;
-      inputs[D_KEY] = false;
+      inputs[D_KEY] = false;  // Stop moving right
       break;
     case I:
       keys[I] = false;
@@ -97,3 +97,4 @@ void handle_key_release(int keycode) {
       break;
   }
 }
+

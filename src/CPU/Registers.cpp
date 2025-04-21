@@ -1,10 +1,6 @@
 #include "Registers.hpp"
 
 Registers::Registers(){
-
-    f |= (1 << FLAG_TO_SET); 
-    f |= (1 << FLAG_TO_CLEAR); 
-    f |= (1 << FLAG_TO_CLEAR_AGAIN); 
     
     window = SDL_CreateWindow("Registers", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_w, window_h, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -19,6 +15,37 @@ Registers::Registers(){
     font = TTF_OpenFont(font_file.c_str(), 16);
     if (!font) {
         printf("error opening font");
+    }
+}
+
+bool Registers::check_flag(int flag_distance) {
+    u8 mask = (f >> flag_distance);
+    if ((mask & 0x1) != 0) {  
+        return true;
+    } else {
+        return false;
+    }
+}
+
+int Registers::get_flag(int flag_distance) {
+    return ((f >> flag_distance) & 0x1);
+}
+
+void Registers::set_flag(int flag_distance) {
+    if (flag_distance < 0 || flag_distance > 7) {
+        return;
+    } else {
+        u8 mask = (1 << flag_distance);
+        f |= mask;
+    }
+}
+
+void Registers::reset_flag(int flag_distance) {
+    if (flag_distance < 0 || flag_distance > 7) {
+        return;
+    } else {
+        u8 mask = ~(1 << flag_distance);
+        f &= mask;
     }
 }
 
@@ -65,19 +92,19 @@ std::string Registers::get_hex_string(int reg_num) {
         
         // 1 bit flag
         case 11:
-            stream << "carry: " << int(ca);
+            stream << "carry: " << int(get_flag(CARRY_POS));
             return stream.str();
         case 12:
-            stream << "parity: " << int(p);
+            stream << "parity: " << int(get_flag(PARITY_POS));
             return stream.str();
         case 13:
-            stream << "aux car: " << int(ac);
+            stream << "aux car: " << int(get_flag(AUX_POS));
             return stream.str();
         case 14:
-            stream << "zero: " << int(z);
+            stream << "zero: " << int(get_flag(ZERO_POS));
             return stream.str();
         case 15:
-            stream << "sign: " << int(s);
+            stream << "sign: " << int(get_flag(SIGN_POS));
                 return stream.str();
         default:
             return "";

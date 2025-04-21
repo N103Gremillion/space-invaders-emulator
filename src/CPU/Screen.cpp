@@ -46,8 +46,8 @@ void Screen::change_pixels(_8080* cpu) {
   for (uint16_t address = VRAM_START; address <= VRAM_END; address++) {
     cur_byte = cpu->memory[address];
     for (int i = 0; i < 8; i++) {
-      int bit = (cur_byte << 7) & 0x80;
-      cur_byte = cur_byte >> 1;
+      int bit = (cur_byte >> i) & 1;
+      int row = cur_row - i;
       pixels[((cur_row - i) * NUM_OF_COLUMNS) + cur_column] = determine_pixel_color(bit, cur_row);
     }
     cur_row-=8;
@@ -60,9 +60,9 @@ void Screen::change_pixels(_8080* cpu) {
 }
 
 void Screen::render_screen(_8080* cpu) {
+  SDL_RenderClear(renderer);
   change_pixels(cpu);
   SDL_UpdateTexture(texture, NULL, pixels, NUM_OF_COLUMNS * sizeof(u32));
-  SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer, texture, NULL, NULL);
   SDL_RenderPresent(renderer);
 }
