@@ -38,7 +38,7 @@ This project is developed and tested on Linux. It may work on other platforms, b
 ## 🚀 Building & Running
 
 Clone the repository and make sure the original **Space Invaders ROM files** (`invaders.e`, `invaders.f`, `invaders.g`, and `invaders.h`) are placed inside a folder named `invaders` in the root directory
-also create an empty build folder in the root directory:
+also create an empty `build` folder in the root directory:
 
 ```bash
 ./run.sh
