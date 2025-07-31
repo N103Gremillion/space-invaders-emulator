@@ -52,9 +52,13 @@ Space_Invaders_Emulator/
 ├── CMakeLists.txt
 ├── README.md
 └── assets/ (fonts, optional)
+```
 
 🙏 Credits
 TheAssembler1 – for the logging library used in this project.
 Space Invaders ROM and hardware documentation from various emulator resources.
-
+- [TheAssembler1](https://github.com/TheAssembler1) – for the logging library used in this project.
+- [opcodes](https://grantmestrength.github.io/RetroComputerInstructionManual/intel8080.html)
+- [opcode table](https://pastraiser.com/cpu/i8080/i8080_opcodes.html)
+- [manual](https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf)
 
