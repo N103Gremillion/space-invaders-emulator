@@ -34,6 +34,17 @@ This project is developed and tested on Linux. It may work on other platforms, b
 ## Eample for how it looks when running
 ![image](https://github.com/user-attachments/assets/acd3f249-bd84-46b1-9512-f9770fc4e94d)
 
+---
+
+## 🎮 Controls
+
+The game uses keyboard input to replicate the original arcade controls:
+```
+I - insert coin
+SpaceBar - shoot / play
+A - Left
+D - Right
+```
 
 ## 🚀 Building & Running
 
