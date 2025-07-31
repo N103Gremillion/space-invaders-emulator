@@ -1,6 +1,6 @@
 # Space_Invaders Emulator
 
-A C++ emulator for the original **Space Invaders** arcade game, built using **SDL2**, **SDL2_ttf**, and **CMake**. This project aims to recreate the classic Space Invaders experience as faithfully as possible, complete with keyboard input and original game behavior.
+A C++ emulator for the original **Space Invaders** arcade game, built using **SDL2**, **SDL2_ttf**, and **CMake**. This project aims to recreate the classic Space Invaders experience, complete with keyboard input and original game behavior.
 
 ---
 
@@ -23,6 +23,12 @@ A C++ emulator for the original **Space Invaders** arcade game, built using **SD
 - CMake (version 3.10+ recommended)
 - A compatible Space Invaders ROM (not included)
 
+--- 
+
+💻 Platform
+
+This project is developed and tested on Linux. It may work on other platforms, but Linux is the main target environment.
+
 ---
 
 ## Eample for how it looks when running
@@ -31,12 +37,15 @@ A C++ emulator for the original **Space Invaders** arcade game, built using **SD
 
 ## 🚀 Building & Running
 
-Clone the repository and make sure the original **Space Invaders ROM files** (`invaders.e`, `invaders.f`, `invaders.g`, and `invaders.h`) are placed inside a folder named `invaders` in the root directory:
+Clone the repository and make sure the original **Space Invaders ROM files** (`invaders.e`, `invaders.f`, `invaders.g`, and `invaders.h`) are placed inside a folder named `invaders` in the root directory
+also create an empty build folder in the root directory:
 
 ```bash
 ./run.sh
 
 Space_Invaders_Emulator/
+├── build/
+├── invaders/
 ├── src/
 ├── include/
 ├── run.sh
